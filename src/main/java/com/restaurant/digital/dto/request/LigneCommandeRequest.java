@@ -9,7 +9,7 @@ public class LigneCommandeRequest {
     private Integer platId;
     
     @NotNull(message = "La quantité est obligatoire")
-    private Short quantite;
+    private Integer quantite;
     
-    private String instructionsSpeciales;
+    private String instructionSpeciale;
 }

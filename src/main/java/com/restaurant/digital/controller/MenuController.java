@@ -14,7 +14,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/menus")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class MenuController {
     
     private final MenuRepository menuRepository;

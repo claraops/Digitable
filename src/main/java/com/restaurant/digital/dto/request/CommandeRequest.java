@@ -14,7 +14,5 @@ public class CommandeRequest {
     
     @NotNull(message = "La liste des plats est obligatoire")
     private List<LigneCommandeRequest> plats;
-
-
-
 }
+

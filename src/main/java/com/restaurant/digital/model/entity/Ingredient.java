@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import java.util.*;
 
 @Entity
-@Table(name = "INGREDIENTS")
+@Table(name = "INGREDIENT")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,9 +16,9 @@ public class Ingredient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID_INGREDIENT")
-    private Integer idIngredient;  // Changé de String à Integer
+    private Integer idIngredient;
     
-    @Column(name = "NOM_INGREDIANT", nullable = false, length = 155)
+    @Column(name = "NOM_INGREDIANT", nullable = false, length = 254)
     private String nomIngredient;
     
     @Column(name = "ISALLERGENE")

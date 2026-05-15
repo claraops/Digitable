@@ -21,26 +21,27 @@ public class Commande {
     private Integer idCommande;
     
     @ManyToOne
-    @JoinColumn(name = "ID_USER", nullable = false)
+    @JoinColumn(name = "_ID_USER", nullable = false)
     private Utilisateur utilisateur;
     
     @ManyToOne
-    @JoinColumn(name = "ID_TABLES", nullable = false)
-    private Tables tables;  // ✅ C'est "tables" (pas "table")
+    @JoinColumn(name = "_ID_TABLES", nullable = false)
+    private Tables tables;
     
     @Column(name = "DATE_COMMANDE", nullable = false)
     private LocalDateTime dateCommande;
     
     @Enumerated(EnumType.STRING)
-    @Column(name = "STATUT", nullable = false, length = 155)
+    @Column(name = "STATUT", nullable = false, length = 254)
     private StatutCommande statut;
     
     @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL)
-    private List<LigneCommande> ligneCommandes = new ArrayList<>();
-    
-    @OneToOne(mappedBy = "commande")
-    private Avis avis;
+    private List<Contenir> contenirs = new ArrayList<>();
+   
     
     @OneToOne(mappedBy = "commande")
     private Facture facture;
+    
+    @OneToOne(mappedBy = "commande")
+    private Avis avis;
 }

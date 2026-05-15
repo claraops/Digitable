@@ -12,7 +12,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/plats")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class PlatController {
 
     private final PlatRepository platRepository;

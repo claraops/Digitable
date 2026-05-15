@@ -8,27 +8,27 @@ import com.restaurant.digital.model.enums.StatutTable;
 import java.util.*;
 
 @Entity
-@Table(name = "TABLES")  
+@Table(name = "TABLES")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Tables {  
+public class Tables {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID_TABLES")  
-    private Integer idTables;  
+    @Column(name = "ID_TABLES")
+    private Integer idTables;
     
     @Column(name = "NUMEROTABLE", nullable = false)
     private Long numeroTable;
     
     @Enumerated(EnumType.STRING)
-    @Column(name = "STATUT", nullable = false, length = 155)
+    @Column(name = "STATUT", nullable = false, length = 254)
     private StatutTable statut;
     
-    @Column(name = "CAPACITE")
+    @Column(name = "CAPACITE", nullable = false)
     private Short capacite;
     
-    @OneToMany(mappedBy = "tables")  
+    @OneToMany(mappedBy = "tables")
     private List<Commande> commandes = new ArrayList<>();
 }

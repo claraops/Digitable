@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/avis")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class AvisController {
 
     private final AvisRepository avisRepository;

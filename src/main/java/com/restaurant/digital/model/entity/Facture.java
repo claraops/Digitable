@@ -19,16 +19,16 @@ public class Facture {
     @Column(name = "ID_FACTURE")
     private Integer idFacture;
     
-    @OneToOne  // Relation directe avec Commande
-    @JoinColumn(name = "ID_COMMANDE", nullable = false)
+    @OneToOne
+    @JoinColumn(name = "_ID_COMMANDE", nullable = false)
     private Commande commande;
     
-    @Column(name = "MODE_PAIEMENT", length = 155)
+    @Column(name = "MODE_PAIEMENT", nullable = false, length = 254)
     private String modePaiement;
     
-    @Column(name = "MONTANT", precision = 10, scale = 2)
+    @Column(name = "MONTANT", nullable = false)
     private BigDecimal montant;
     
-    @Column(name = "DATE_PAIEMENT")
+    @Column(name = "DATE_PAIEMENT", nullable = false)
     private LocalDateTime datePaiement;
 }

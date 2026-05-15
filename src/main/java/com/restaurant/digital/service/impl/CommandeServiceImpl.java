@@ -13,221 +13,176 @@ import com.restaurant.digital.service.interfaces.CommandeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDateTime;
-import java.util.*;
+
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class CommandeServiceImpl implements CommandeService {
-    
+
     private final CommandeRepository commandeRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final TablesRepository tablesRepository;
     private final PlatRepository platRepository;
-    private final LigneCommandeRepository ligneCommandeRepository;
+    private final ContenirRepository contenirRepository;
     private final FactureRepository factureRepository;
-    
+
     @Override
     public CommandeResponse creerCommande(CommandeRequest request) {
-        // Récupérer l'utilisateur
         Utilisateur utilisateur = utilisateurRepository.findById(request.getUserId())
-            .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé avec l'id: " + request.getUserId()));
-        
-        // Récupérer la table
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
+
         Tables table = tablesRepository.findById(request.getTablesId())
-            .orElseThrow(() -> new ResourceNotFoundException("Table non trouvée avec l'id: " + request.getTablesId()));
-        
-        // Vérifier que la table est libre
+                .orElseThrow(() -> new ResourceNotFoundException("Table non trouvée"));
+
         if (table.getStatut() != StatutTable.LIBRE) {
-            throw new IllegalStateException("La table n'est pas disponible. Statut actuel: " + table.getStatut());
+            throw new IllegalStateException("La table n'est pas disponible");
         }
-        
-        // Occuper la table
-        tablesRepository.updateStatut(table.getIdTables(), StatutTable.OCCUPEE);
-        
-        // Créer la commande
+
+        table.setStatut(StatutTable.OCCUPEE);
+        tablesRepository.save(table);
+
         Commande commande = new Commande();
         commande.setUtilisateur(utilisateur);
         commande.setTables(table);
         commande.setDateCommande(LocalDateTime.now());
         commande.setStatut(StatutCommande.EN_ATTENTE);
-        
+
         Commande savedCommande = commandeRepository.save(commande);
-        
-        // Créer les lignes de commande
-        List<LigneCommande> lignes = new ArrayList<>();
+
+        List<Contenir> contenirs = new ArrayList<>();
         BigDecimal montantTotal = BigDecimal.ZERO;
-        
-        for (LigneCommandeRequest ligneRequest : request.getPlats()) {
-            Plat plat = platRepository.findById(ligneRequest.getPlatId())
-                .orElseThrow(() -> new ResourceNotFoundException("Plat non trouvé avec l'id: " + ligneRequest.getPlatId()));
-            
-            LigneCommande ligne = new LigneCommande();
-            ligne.setCommande(savedCommande);
-            ligne.setPlat(plat);
-            ligne.setQuantite(ligneRequest.getQuantite());
-            ligne.setPrixUnitaire(plat.getPrix());
-            ligne.setInstructionsSpeciales(ligneRequest.getInstructionsSpeciales());
-            
-            LigneCommande savedLigne = ligneCommandeRepository.save(ligne);
-            lignes.add(savedLigne);
-            
-            BigDecimal sousTotal = plat.getPrix()
-                .multiply(BigDecimal.valueOf(ligneRequest.getQuantite()));
-            montantTotal = montantTotal.add(sousTotal);
+
+        for (LigneCommandeRequest ligne : request.getPlats()) {
+            Plat plat = platRepository.findById(ligne.getPlatId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Plat non trouvé"));
+
+            Contenir contenir = new Contenir();
+            contenir.setCommande(savedCommande);
+            contenir.setPlat(plat);
+            contenir.setQuantite(ligne.getQuantite());
+            contenir.setPrixUnitaire(plat.getPrix());
+            contenir.setInstructionSpeciale(ligne.getInstructionSpeciale());
+
+            contenirs.add(contenirRepository.save(contenir));
+
+            montantTotal = montantTotal.add(plat.getPrix().multiply(BigDecimal.valueOf(ligne.getQuantite())));
         }
-        
-        savedCommande.setLigneCommandes(lignes);
-        
+
+        savedCommande.setContenirs(contenirs);
         return mapToResponse(savedCommande, montantTotal);
     }
-    
+
     @Override
     public CommandeResponse modifierStatut(Integer idCommande, StatutCommande statut) {
         Commande commande = commandeRepository.findById(idCommande)
-            .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée avec l'id: " + idCommande));
-        
+                .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée"));
+
         commande.setStatut(statut);
-        
-        // Si la commande est servie, libérer la table
+
         if (statut == StatutCommande.SERVIE) {
-            tablesRepository.updateStatut(commande.getTables().getIdTables(), StatutTable.A_NETTOYER);
+            Tables table = commande.getTables();
+            table.setStatut(StatutTable.A_NETTOYER);
+            tablesRepository.save(table);
         }
-        
-        // Si la commande est payée, créer la facture
+
         if (statut == StatutCommande.PAYEE && commande.getFacture() == null) {
             creerFacture(commande);
         }
-        
-        Commande updated = commandeRepository.save(commande);
-        
-        return mapToResponse(updated, calculerMontantTotal(updated));
+
+        return mapToResponse(commande, calculerMontantTotal(commande));
     }
-    
+
+    @Override
+    public CommandeResponse getCommandeById(Integer id) {
+        Commande commande = commandeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée"));
+        return mapToResponse(commande, calculerMontantTotal(commande));
+    }
+
+    @Override
+    public List<CommandeResponse> getCommandesByStatut(StatutCommande statut) {
+        return commandeRepository.findByStatut(statut).stream()
+                .map(c -> mapToResponse(c, calculerMontantTotal(c)))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Commande annulerCommande(Integer idCommande) {
+        Commande commande = commandeRepository.findById(idCommande)
+                .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée"));
+
+        if (commande.getStatut() != StatutCommande.EN_ATTENTE) {
+            throw new IllegalStateException("Impossible d'annuler une commande déjà en préparation ou servie");
+        }
+
+        commande.setStatut(StatutCommande.ANNULEE);
+        Tables table = commande.getTables();
+        table.setStatut(StatutTable.LIBRE);
+        tablesRepository.save(table);
+
+        return commandeRepository.save(commande);
+    }
+
+    @Override
+    public List<CommandeResponse> getHistoriqueUtilisateur(Integer userId) {
+        Utilisateur utilisateur = utilisateurRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
+
+        return commandeRepository.findByUtilisateur(utilisateur).stream()
+                .map(c -> mapToResponse(c, calculerMontantTotal(c)))
+                .collect(Collectors.toList());
+    }
+
     private void creerFacture(Commande commande) {
         Facture facture = new Facture();
         facture.setCommande(commande);
         facture.setMontant(calculerMontantTotal(commande));
         facture.setDatePaiement(LocalDateTime.now());
-        facture.setModePaiement("CARTE"); // Valeur par défaut
+        facture.setModePaiement("CARTE");
         factureRepository.save(facture);
     }
-    
-    @Override
-    public CommandeResponse getCommandeById(Integer id) {
-        Commande commande = commandeRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée avec l'id: " + id));
-        return mapToResponse(commande, calculerMontantTotal(commande));
-    }
-    
-    @Override
-    public List<CommandeResponse> getCommandesByStatut(StatutCommande statut) {
-        return commandeRepository.findByStatut(statut).stream()
-            .map(c -> mapToResponse(c, calculerMontantTotal(c)))
-            .collect(Collectors.toList());
-    }
-    
-    @Override
-    public Commande annulerCommande(Integer idCommande) {
-        Commande commande = commandeRepository.findById(idCommande)
-            .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée avec l'id: " + idCommande));
-        
-        if (commande.getStatut() == StatutCommande.EN_ATTENTE) {
-            commande.setStatut(StatutCommande.ANNULEE);
-            // Libérer la table
-            tablesRepository.updateStatut(commande.getTables().getIdTables(), StatutTable.LIBRE);
-            return commandeRepository.save(commande);
-        } else {
-            throw new IllegalStateException("Impossible d'annuler une commande déjà en préparation ou servie");
-        }
-    }
-    
-    @Override
-    public List<CommandeResponse> getHistoriqueUtilisateur(Integer userId) {
-        Utilisateur utilisateur = utilisateurRepository.findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé avec l'id: " + userId));
-        
-        return commandeRepository.findByUtilisateur(utilisateur).stream()
-            .map(c -> mapToResponse(c, calculerMontantTotal(c)))
-            .collect(Collectors.toList());
-    }
-    
+
     private CommandeResponse mapToResponse(Commande commande, BigDecimal montantTotal) {
-        CommandeResponse response = new CommandeResponse();
-        response.setIdCommande(commande.getIdCommande());
-        response.setUtilisateurNom(commande.getUtilisateur().getNom());
-        response.setUtilisateurPrenom(commande.getUtilisateur().getPrenom());
-        response.setNumeroTable(commande.getTables().getNumeroTable());
-        response.setDateCommande(commande.getDateCommande());
-        response.setStatut(commande.getStatut().toString());
-        response.setMontantTotal(montantTotal);
-        
-        List<LigneCommandeResponse> lignesResponse = commande.getLigneCommandes().stream()
-            .map(l -> {
-                LigneCommandeResponse ligneResponse = new LigneCommandeResponse();
-                ligneResponse.setPlatNom(l.getPlat().getNomPlat());
-                ligneResponse.setQuantite(l.getQuantite());
-                ligneResponse.setPrixUnitaire(l.getPrixUnitaire());
-                ligneResponse.setInstructionsSpeciales(l.getInstructionsSpeciales());
-                ligneResponse.setSousTotal(
-                    l.getPrixUnitaire().multiply(BigDecimal.valueOf(l.getQuantite()))
-                );
-                return ligneResponse;
-            })
-            .collect(Collectors.toList());
-        
-        response.setPlatsCommandes(lignesResponse);
-        response.setNombrePlats(lignesResponse.size());
-        
-        if (commande.getFacture() != null) {
-            response.setIdFacture(commande.getFacture().getIdFacture());
-            response.setModePaiement(commande.getFacture().getModePaiement());
-            response.setDatePaiement(commande.getFacture().getDatePaiement());
-        }
-        
-        return response;
+        List<LigneCommandeResponse> lignes = commande.getContenirs().stream()
+                .map(c -> LigneCommandeResponse.builder()
+                        .platNom(c.getPlat().getNomPlat())
+                        .platImage(c.getPlat().getImagePlat())
+                        .quantite(c.getQuantite())
+                        .prixUnitaire(c.getPrixUnitaire())
+                        .sousTotal(c.getPrixUnitaire().multiply(BigDecimal.valueOf(c.getQuantite())))
+                        .instructionSpeciale(c.getInstructionSpeciale())
+                        .build())
+                .collect(Collectors.toList());
+
+        return CommandeResponse.builder()
+                .idCommande(commande.getIdCommande())
+                .utilisateurNom(commande.getUtilisateur().getNom())
+                .utilisateurPrenom(commande.getUtilisateur().getPrenom())
+                .numeroTable(commande.getTables().getNumeroTable())
+                .dateCommande(commande.getDateCommande())
+                .statut(commande.getStatut().toString())
+                .montantTotal(montantTotal)
+                .platsCommandes(lignes)
+                .nombrePlats(lignes.size())
+                .build();
+    }
+
+    private BigDecimal calculerMontantTotal(Commande commande) {
+        return commande.getContenirs().stream()
+                .map(c -> c.getPrixUnitaire().multiply(BigDecimal.valueOf(c.getQuantite())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
     
-    private BigDecimal calculerMontantTotal(Commande commande) {
-        return commande.getLigneCommandes().stream()
-            .map(l -> {
-                BigDecimal prix = l.getPrixUnitaire() != null ? l.getPrixUnitaire() : BigDecimal.ZERO;
-                Short quantite = l.getQuantite() != null ? l.getQuantite() : 0;
-                return prix.multiply(BigDecimal.valueOf(quantite));
-            })
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    @Override
+    public List<CommandeResponse> getAllCommandes() {
+        return commandeRepository.findAll().stream()
+                .map(c -> mapToResponse(c, calculerMontantTotal(c)))
+                .collect(Collectors.toList());
     }
-
-	@Override
-	public CommandeResponse modifierStatut(String idCommande, StatutCommande statut) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CommandeResponse getCommandeById(String id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Commande annulerCommande(String idCommande) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<CommandeResponse> getHistoriqueUtilisateur(String userId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<CommandeResponse> getCommandesByTable(Integer tableId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

@@ -8,15 +8,10 @@ import java.util.List;
 
 public interface CommandeService {
     CommandeResponse creerCommande(CommandeRequest request);
-    CommandeResponse modifierStatut(String idCommande, StatutCommande statut);
-    CommandeResponse getCommandeById(String id);
+    CommandeResponse modifierStatut(Integer idCommande, StatutCommande statut);
+    CommandeResponse getCommandeById(Integer id);
     List<CommandeResponse> getCommandesByStatut(StatutCommande statut);
-    Commande annulerCommande(String idCommande);
-    List<CommandeResponse> getHistoriqueUtilisateur(String userId);
-	Commande annulerCommande(Integer idCommande);
-	List<CommandeResponse> getHistoriqueUtilisateur(Integer userId);
-	CommandeResponse getCommandeById(Integer id);
-	CommandeResponse modifierStatut(Integer idCommande, StatutCommande statut);
-	/******ajout**********/
-	List<CommandeResponse> getCommandesByTable(Integer tableId);
+    Commande annulerCommande(Integer idCommande);
+    List<CommandeResponse> getHistoriqueUtilisateur(Integer userId);
+    List<CommandeResponse> getAllCommandes(); // nouvelle méthode
 }

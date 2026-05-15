@@ -16,16 +16,16 @@ public class Avis {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID_AVIS")
-    private Integer idAvis;  // Changé de String à Integer
+    private Integer idAvis;
     
     @OneToOne
-    @JoinColumn(name = "ID_COMMANDE", nullable = false)
+    @JoinColumn(name = "_ID_COMMANDE", nullable = false)
     private Commande commande;
     
-    @Column(name = "NOTE")
-    private Byte note;  // Changé pour correspondre à tinyint
+    @Column(name = "NOTE", length = 254)
+    private String note;
     
-    @Column(name = "COMMENTAIRE", length = 155)
+    @Column(name = "COMMENTAIRE", length = 254)
     private String commentaire;
     
     @Column(name = "DATE_AVIS", nullable = false)

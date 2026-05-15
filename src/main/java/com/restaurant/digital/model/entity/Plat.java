@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.*;
 
+import com.restaurant.digital.model.enums.CategoriePlat;
+
 @Entity
 @Table(name = "PLAT")
 @Data
@@ -17,31 +19,39 @@ public class Plat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID_PLAT")
-    private Integer idPlat;  // Changé de String à Integer
+    private Integer idPlat;
     
-    @Column(name = "NOM_PLAT", length = 155)
+    @Column(name = "NOM_PLAT", nullable = false, length = 254)
     private String nomPlat;
     
-    @Column(name = "DESCRIPTION", columnDefinition = "text")  // Changé pour TEXT
+    @Column(name = "DESCRIPTION", nullable = false, columnDefinition = "TEXT")
     private String description;
     
-    @Column(name = "PRIX", precision = 10, scale = 2)  // decimal
+    @Column(name = "PRIX", nullable = false)
     private BigDecimal prix;
     
     @Column(name = "DISPONIBILITE")
     private Boolean disponibilite;
     
+    @Column(name = "IMAGE_PLAT", nullable = false, length = 254)
+    private String imagePlat;
+    
+ // dans Plat.java
+    @Enumerated(EnumType.STRING)
+    @Column(name = "CATEGORIE", nullable = false, length = 50)
+    private CategoriePlat categorie;
+    
     @OneToMany(mappedBy = "plat")
-    private List<LigneCommande> ligneCommandes = new ArrayList<>();
+    private List<Contenir> contenirs = new ArrayList<>();
     
     @ManyToMany(mappedBy = "plats")
     private List<Menu> menus = new ArrayList<>();
     
     @ManyToMany
     @JoinTable(
-        name = "CONSTITUER",  // Nom changé
-        joinColumns = @JoinColumn(name = "ID_PLAT"),
-        inverseJoinColumns = @JoinColumn(name = "ID_INGREDIENT")
+        name = "CONSTITUER",
+        joinColumns = @JoinColumn(name = "_ID_PLAT"),
+        inverseJoinColumns = @JoinColumn(name = "_ID_INGREDIENT")
     )
     private List<Ingredient> ingredients = new ArrayList<>();
 }
