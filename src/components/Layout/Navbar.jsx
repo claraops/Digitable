@@ -2,21 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, ShoppingCart, User, LogOut } from 'lucide-react';
 import { useCart } from '../../hooks/useCart';
+import { useAuth } from '../../hooks/useAuth.jsx';
+import logoImage from '../../assets/logo.webp';
 
 const NavigationBar = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, logout } = useAuth();
   const { getTotalItems } = useCart();
 
   useEffect(() => {
-    const userId = localStorage.getItem('userId');
-    setIsLoggedIn(Boolean(userId));
-  }, []);
+    setIsLoggedIn(Boolean(user));
+  }, [user]);
 
   const navLinks = [
     { label: 'Accueil', to: '/' },
-    { label: 'Menu', to: '/menu' },
+    { label: 'Nos Plats', to: '/menu' },
     { label: 'Tables', to: '/tables' },
     { label: 'Commandes', to: '/commandes' },
     { label: 'Factures', to: '/factures' },
@@ -24,9 +26,7 @@ const NavigationBar = () => {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userNom');
-    localStorage.removeItem('user');
+    logout();
     setIsLoggedIn(false);
     setMenuOpen(false);
     navigate('/');
@@ -36,9 +36,19 @@ const NavigationBar = () => {
     <nav className="sticky top-0 z-40 bg-black-deep text-white-pure border-b border-gray-dark">
       <div className="container-responsive">
         <div className="flex items-center justify-between h-14 sm:h-16">
-          {/* Logo */}
-          <Link to="/" className="font-bold text-lg sm:text-2xl">
-            Menu<span className="text-gold">Digital</span>
+          {/* Logo + Brand */}
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gold/20 border border-gold/50 shadow-md group-hover:scale-105 transition-transform duration-300">
+              <img 
+                src={logoImage} 
+                alt="Logo" 
+                className="w-full h-full object-cover"
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+            </div>
+            <span className="font-bold text-lg sm:text-2xl">
+              Menu<span className="text-gold">Digital</span>
+            </span>
           </Link>
 
           {/* Desktop Navigation */}

@@ -8,16 +8,30 @@ import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 
 export default function Profile() {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, login } = useAuth();
   const [commandes, setCommandes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState(() => ({
-    nom: user?.nom || '',
-    prenom: user?.prenom || '',
-    email: user?.email || '',
-    langue: user?.langue || 'fr'
-  }));
+  const [formData, setFormData] = useState({
+    nom: '',
+    prenom: '',
+    email: '',
+    langue: 'fr',
+    telephone: ''
+  });
+
+  // ✅ Mettre à jour formData quand user change
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        nom: user.nom || '',
+        prenom: user.prenom || '',
+        email: user.email || '',
+        langue: user.langue || 'fr',
+        telephone: user.telephone || ''
+      });
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!isAuthenticated || !user) return;
@@ -25,10 +39,16 @@ export default function Profile() {
     const fetchHistorique = async () => {
       setLoading(true);
       try {
-        const res = await commandeService.getHistorique(user.idUser);
-        setCommandes(res.data);
-      } catch {
-        console.error('Erreur lors du chargement de l\'historique');
+        // ✅ Utiliser idUser ou id
+        const userId = user.idUser || user.id;
+        if (!userId || userId === 'undefined') {
+          console.error('ID utilisateur invalide:', user);
+          return;
+        }
+        const response = await commandeService.getHistorique(parseInt(userId));
+        setCommandes(response.data || []);
+      } catch (error) {
+        console.error('Erreur chargement historique:', error);
       } finally {
         setLoading(false);
       }
@@ -39,13 +59,16 @@ export default function Profile() {
 
   const handleUpdate = async () => {
     try {
-      await utilisateurService.update(user.idUser, formData);
+      const userId = user.idUser || user.id;
+      await utilisateurService.update(parseInt(userId), formData);
       toast.success('Profil mis à jour !');
       setIsEditing(false);
-      // Mettre à jour l'utilisateur dans localStorage
+      
+      // ✅ Mettre à jour l'utilisateur dans le state en mémoire
       const updatedUser = { ...user, ...formData };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-    } catch {
+      login(updatedUser);
+    } catch (error) {
+      console.error('Erreur mise à jour:', error);
       toast.error('Erreur lors de la mise à jour');
     }
   };
@@ -58,7 +81,6 @@ export default function Profile() {
       'SERVIE': { label: 'Servie', color: 'bg-green-500' },
       'PAYEE': { label: 'Payée', color: 'bg-purple-500' },
       'ANNULEE': { label: 'Annulée', color: 'bg-red-500' }
-      
     };
     const config = statusConfig[statut] || { label: statut, color: 'bg-gray-500' };
     return (
@@ -111,6 +133,13 @@ export default function Profile() {
                       placeholder="Nom"
                       className="input text-sm"
                     />
+                    <input
+                      type="tel"
+                      value={formData.telephone}
+                      onChange={(e) => setFormData({...formData, telephone: e.target.value})}
+                      placeholder="Téléphone"
+                      className="input text-sm"
+                    />
                   </div>
                 ) : (
                   <>
@@ -124,6 +153,14 @@ export default function Profile() {
                     <div className="flex items-center gap-2 text-gray-dark mt-1">
                       <Globe size={16} />
                       <span className="text-sm">{user?.langue === 'fr' ? 'Français' : 'English'}</span>
+                    </div>
+                    {user?.telephone && (
+                      <div className="flex items-center gap-2 text-gray-dark mt-1">
+                        <span className="text-sm">📞 {user.telephone}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-gold mt-1">
+                      <span className="text-sm font-semibold">Rôle: {user?.role}</span>
                     </div>
                   </>
                 )}
@@ -177,12 +214,12 @@ export default function Profile() {
                         {new Date(cmd.dateCommande).toLocaleDateString('fr-FR')}
                       </p>
                       <p className="text-sm mt-1">
-                        {cmd.nombrePlats} plat{cmd.nombrePlats > 1 ? 's' : ''}
+                        {cmd.nombrePlats || cmd.platsCommandes?.length || 0} plat(s)
                       </p>
                     </div>
                     <div className="text-right">
                       {getStatusBadge(cmd.statut)}
-                      <p className="text-gold font-bold mt-2">{cmd.montantTotal} €</p>
+                      <p className="text-gold font-bold mt-2">{cmd.montantTotal?.toFixed(2)} €</p>
                     </div>
                   </div>
                 </Link>

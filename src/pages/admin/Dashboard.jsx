@@ -1,3 +1,4 @@
+// src/pages/admin/Dashboard.jsx
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart3, ListChecks, Table, ShoppingBag, Users } from 'lucide-react';
@@ -15,19 +16,36 @@ export default function Dashboard() {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const [platsRes, menusRes, tablesRes, commandesRes, usersRes] = await Promise.all([
-          platService.getAll(),
-          menuService.getAll(),
-          tablesService.getAll(),
-          commandeService.getAll(),
-          utilisateurService.getAll(),
-        ]);
-
-        const plats = Array.isArray(platsRes.data) ? platsRes.data : [];
-        const menus = Array.isArray(menusRes.data) ? menusRes.data : [];
-        const tables = Array.isArray(tablesRes.data) ? tablesRes.data : [];
-        const commandes = Array.isArray(commandesRes.data) ? commandesRes.data : [];
-        const utilisateurs = Array.isArray(usersRes.data) ? usersRes.data : [];
+        // ✅ Exécuter les appels individuellement avec gestion d'erreur
+        let plats = [], menus = [], tables = [], commandes = [], utilisateurs = [];
+        
+        try {
+          const res = await platService.getAll();
+          plats = Array.isArray(res.data) ? res.data : [];
+        } catch (e) { console.warn('Plats:', e.message); }
+        
+        try {
+          const res = await menuService.getAll();
+          menus = Array.isArray(res.data) ? res.data : [];
+        } catch (e) { console.warn('Menus:', e.message); }
+        
+        try {
+          const res = await tablesService.getAll();
+          tables = Array.isArray(res.data) ? res.data : [];
+        } catch (e) { console.warn('Tables:', e.message); }
+        
+        try {
+          const res = await commandeService.getAll();
+          commandes = Array.isArray(res.data) ? res.data : [];
+        } catch (e) { 
+          console.warn('Commandes (admin) - Peut être normal si pas de données:', e.message);
+          commandes = [];
+        }
+        
+        try {
+          const res = await utilisateurService.getAll();
+          utilisateurs = Array.isArray(res.data) ? res.data : [];
+        } catch (e) { console.warn('Utilisateurs:', e.message); }
 
         setStats({
           plats: plats.length,
@@ -39,7 +57,7 @@ export default function Dashboard() {
 
         setRecentCommandes(commandes.slice(0, 5));
       } catch (error) {
-        console.error(error);
+        console.error('Erreur globale:', error);
       } finally {
         setLoading(false);
       }

@@ -1,17 +1,10 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { 
-  LayoutDashboard, 
-  Utensils, 
-  Menu as MenuIcon,
-  Table as TableIcon,
-  Users, 
-  ShoppingBag,
-  Star,
-  Settings,
-  LogOut,
-  X,
-  ChevronDown
+  LayoutDashboard, Utensils, Menu as MenuIcon,
+  Table as TableIcon, Users, ShoppingBag, Star,
+  Settings, LogOut, X
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -27,18 +20,53 @@ const adminNavItems = [
 ];
 
 export default function AdminLayout() {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (user && user.role !== 'ADMIN') {
-      navigate('/');
-    }
-  }, [user, navigate]);
+    // Vérification du rôle ADMIN
+    const checkAdmin = () => {
+      // Récupérer directement depuis localStorage
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          const role = userData.role || userData.authorities?.[0];
+          const hasAdminRole = role === 'ADMIN' || role === 'ROLE_ADMIN';
+          
+          console.log('Vérification admin:', { role, hasAdminRole, userData });
+          
+          if (!hasAdminRole) {
+            toast.error('Accès non autorisé. Veuillez vous connecter en tant qu\'administrateur.');
+            navigate('/');
+          } else {
+            setIsAdmin(true);
+          }
+        } catch (e) {
+          console.error('Erreur parsing user:', e);
+          navigate('/');
+        }
+      } else {
+        console.log('Aucun utilisateur dans localStorage');
+        toast.error('Veuillez vous connecter');
+        navigate('/login');
+      }
+    };
 
-  if (user && user.role !== 'ADMIN') {
-    return null;
+    if (!loading) {
+      checkAdmin();
+    }
+  }, [loading, navigate]);
+
+  // Afficher un loader pendant la vérification
+  if (loading || !isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   const closeMobile = () => setMobileOpen(false);
@@ -66,9 +94,9 @@ export default function AdminLayout() {
         </div>
 
         {/* Sidebar */}
-        <aside className={`fixed inset-y-14 left-0 z-40 w-64 bg-black-deep text-white-pure transform transition-transform duration-300 md:relative md:inset-auto md:translate-x-0 md:w-64 ${
+        <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-black-deep text-white-pure transform transition-transform duration-300 md:relative md:inset-auto md:translate-x-0 md:w-64 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}>
+        } shadow-lg md:shadow-none`}>
           <div className="p-4 sm:p-6 border-b border-white/10">
             <h1 className="text-xl sm:text-2xl font-bold">
               Menu<span className="text-gold">Admin</span>
@@ -117,7 +145,7 @@ export default function AdminLayout() {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 w-full md:ml-0">
+        <main className="flex-1 w-full md:ml-64">
           <div className="p-3 sm:p-4 md:p-8">
             <div className="mb-6 sm:mb-8 bg-white-pure border border-gray-light rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
               <div className="mb-4">

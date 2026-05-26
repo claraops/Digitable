@@ -24,9 +24,13 @@ export default function TablesAdmin() {
   const fetchTables = async () => {
     try {
       const response = await tablesService.getAll();
-      setTables(response.data);
+      const tablesData = Array.isArray(response.data)
+        ? response.data
+        : (response.data?.content || response.data?.data || []);
+      setTables(tablesData);
     } catch {
       toast.error('Erreur lors du chargement des tables');
+      setTables([]);
     } finally {
       setLoading(false);
     }
@@ -92,9 +96,9 @@ export default function TablesAdmin() {
     setEditingTable(null);
   };
 
-  const filteredTables = tables.filter(t =>
-    t.numeroTable?.toString().includes(search)
-  );
+  const filteredTables = Array.isArray(tables)
+    ? tables.filter(t => t.numeroTable?.toString().includes(search))
+    : [];
 
   const getStatusColor = (statut) => {
     const colors = {

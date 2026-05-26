@@ -1,14 +1,14 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: 'http://localhost:8080/api/v1',
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Intercepteur pour ajouter le token
+// Intercepteur pour ajouter l'authentification Basic depuis le backend Spring Boot
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const basicAuth = localStorage.getItem('basicAuth');
+  if (basicAuth) config.headers.Authorization = `Basic ${basicAuth}`;
   return config;
 });
 

@@ -27,9 +27,19 @@ export default function UtilisateursAdmin() {
   const fetchUtilisateurs = async () => {
     try {
       const response = await utilisateurService.getAll();
-      setUtilisateurs(response.data);
-    } catch {
+      let usersData = [];
+      if (Array.isArray(response.data)) {
+        usersData = response.data;
+      } else if (response.data?.content && Array.isArray(response.data.content)) {
+        usersData = response.data.content;
+      } else {
+        usersData = [];
+      }
+      setUtilisateurs(usersData);
+    } catch (error) {
+      console.error('Erreur fetchUtilisateurs:', error);
       toast.error('Erreur lors du chargement des utilisateurs');
+      setUtilisateurs([]);
     } finally {
       setLoading(false);
     }
@@ -39,9 +49,9 @@ export default function UtilisateursAdmin() {
     if (user) {
       setEditingUser(user);
       setFormData({
-        nom: user.nom,
-        prenom: user.prenom,
-        email: user.email,
+        nom: user.nom || '',
+        prenom: user.prenom || '',
+        email: user.email || '',
         telephone: user.telephone || '',
         langue: user.langue || 'fr',
         role: user.role || 'CLIENT',
@@ -77,8 +87,9 @@ export default function UtilisateursAdmin() {
       }
       fetchUtilisateurs();
       closeModal();
-    } catch {
-      toast.error('Erreur lors de l enregistrement');
+    } catch (error) {
+      console.error('Erreur handleSubmit:', error);
+      toast.error('Erreur lors de l\'enregistrement');
     }
   };
 
@@ -88,25 +99,36 @@ export default function UtilisateursAdmin() {
         await utilisateurService.delete(id);
         toast.success('Utilisateur supprimé');
         fetchUtilisateurs();
-      } catch {
+      } catch (error) {
+        console.error('Erreur handleDelete:', error);
         toast.error('Erreur lors de la suppression');
       }
     }
   };
 
-  const filteredUsers = utilisateurs.filter((user) =>
-    `${user.nom} ${user.prenom} ${user.email}`.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = Array.isArray(utilisateurs) 
+    ? utilisateurs.filter((user) =>
+        `${user.nom} ${user.prenom} ${user.email}`.toLowerCase().includes(search.toLowerCase())
+      )
+    : [];
 
   if (loading) return <Loader />;
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Gestion des Utilisateurs</h1>
-        <button onClick={() => openModal()} className="btn-primary flex items-center gap-2">
-          <Plus size={20} /> Ajouter un utilisateur
-        </button>
+      <div className="bg-gray-light rounded-3xl p-6 mb-8 shadow-sm border border-gray-light">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.3em] text-gray-dark mb-2 flex items-center gap-2">
+              👥 Gérer les utilisateurs
+            </p>
+            <h1 className="text-3xl font-bold">Gestion des Utilisateurs</h1>
+            <p className="text-gray-dark mt-2">Consultez, modifiez et supprimez les comptes utilisateurs.</p>
+          </div>
+          <button onClick={() => openModal()} className="btn-primary flex items-center gap-2 self-start md:self-auto">
+            <Plus size={20} /> Ajouter un utilisateur
+          </button>
+        </div>
       </div>
 
       <div className="relative max-w-md mb-6">
@@ -120,42 +142,54 @@ export default function UtilisateursAdmin() {
         />
       </div>
 
-      <div className="bg-white-pure rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-light">
-            <tr>
-              <th className="px-6 py-3 text-left">ID</th>
-              <th className="px-6 py-3 text-left">Nom</th>
-              <th className="px-6 py-3 text-left">Email</th>
-              <th className="px-6 py-3 text-left">Téléphone</th>
-              <th className="px-6 py-3 text-left">Rôle</th>
-              <th className="px-6 py-3 text-left">Langue</th>
-              <th className="px-6 py-3 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredUsers.map((user) => (
-              <tr key={user.idUser} className="border-b border-gray-light hover:bg-gray-light/50">
-                <td className="px-6 py-4">#{user.idUser}</td>
-                <td className="px-6 py-4 font-medium">{user.prenom} {user.nom}</td>
-                <td className="px-6 py-4 text-sm text-gray-dark">{user.email}</td>
-                <td className="px-6 py-4 text-sm text-gray-dark">{user.telephone || '—'}</td>
-                <td className="px-6 py-4 text-sm">{user.role}</td>
-                <td className="px-6 py-4 text-sm">{user.langue}</td>
-                <td className="px-6 py-4">
-                  <div className="flex gap-2">
-                    <button onClick={() => openModal(user)} className="text-blue-500 hover:text-blue-700">
-                      <Edit2 size={18} />
-                    </button>
-                    <button onClick={() => handleDelete(user.idUser)} className="text-red-500 hover:text-red-700">
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </td>
+      <div className="bg-white-pure rounded-xl shadow-sm overflow-x-auto">
+        {filteredUsers.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-dark">Aucun utilisateur trouvé</p>
+          </div>
+        ) : (
+          <table className="w-full min-w-[768px]">
+            <thead className="bg-gray-light">
+              <tr>
+                <th className="px-6 py-3 text-left">ID</th>
+                <th className="px-6 py-3 text-left">Nom</th>
+                <th className="px-6 py-3 text-left">Email</th>
+                <th className="px-6 py-3 text-left">Téléphone</th>
+                <th className="px-6 py-3 text-left">Rôle</th>
+                <th className="px-6 py-3 text-left">Langue</th>
+                <th className="px-6 py-3 text-left">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredUsers.map((user) => (
+                <tr key={user.idUser} className="border-b border-gray-light hover:bg-gray-light/50">
+                  <td className="px-6 py-4">#{user.idUser}</td>
+                  <td className="px-6 py-4 font-medium">{user.prenom} {user.nom}</td>
+                  <td className="px-6 py-4 text-sm text-gray-dark">{user.email}</td>
+                  <td className="px-6 py-4 text-sm text-gray-dark">{user.telephone || '—'}</td>
+                  <td className="px-6 py-4 text-sm">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      user.role === 'ADMIN' ? 'bg-gold text-black-deep' : 'bg-gray-light text-gray-dark'
+                    }`}>
+                      {user.role}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm">{user.langue}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex gap-2">
+                      <button onClick={() => openModal(user)} className="text-blue-500 hover:text-blue-700">
+                        <Edit2 size={18} />
+                      </button>
+                      <button onClick={() => handleDelete(user.idUser)} className="text-red-500 hover:text-red-700">
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                   </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {isModalOpen && (
@@ -165,25 +199,27 @@ export default function UtilisateursAdmin() {
               {editingUser ? 'Modifier l\'utilisateur' : 'Ajouter un utilisateur'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Prénom</label>
-                <input
-                  type="text"
-                  value={formData.prenom}
-                  onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
-                  required
-                  className="input"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Nom</label>
-                <input
-                  type="text"
-                  value={formData.nom}
-                  onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                  required
-                  className="input"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Prénom</label>
+                  <input
+                    type="text"
+                    value={formData.prenom}
+                    onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
+                    required
+                    className="input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Nom</label>
+                  <input
+                    type="text"
+                    value={formData.nom}
+                    onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                    required
+                    className="input"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Email</label>
@@ -236,7 +272,7 @@ export default function UtilisateursAdmin() {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="input"
-                  placeholder={editingUser ? 'Laissez vide pour conserver le mot de passe' : ''}
+                  placeholder={editingUser ? 'Laissez vide pour conserver' : ''}
                   required={!editingUser}
                 />
               </div>
