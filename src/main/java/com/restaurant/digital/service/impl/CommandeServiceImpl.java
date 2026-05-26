@@ -159,8 +159,20 @@ public class CommandeServiceImpl implements CommandeService {
                         .instructionSpeciale(c.getInstructionSpeciale())
                         .build())
                 .collect(Collectors.toList());
-
+        
         return CommandeResponse.builder()
+        	    .idCommande(commande.getIdCommande())
+        	    .utilisateurNom(commande.getUtilisateur().getNom())  // ← Vérifier getNom() pas getNom()
+        	    .utilisateurPrenom(commande.getUtilisateur().getPrenom())
+        	    .numeroTable(commande.getTables().getNumeroTable())
+        	    .dateCommande(commande.getDateCommande())
+        	    .statut(commande.getStatut().toString())
+        	    .montantTotal(montantTotal)
+        	    .platsCommandes(lignes)
+        	    .nombrePlats(lignes.size())
+        	    .build();
+
+        /*return CommandeResponse.builder()
                 .idCommande(commande.getIdCommande())
                 .utilisateurNom(commande.getUtilisateur().getNom())
                 .utilisateurPrenom(commande.getUtilisateur().getPrenom())
@@ -170,7 +182,7 @@ public class CommandeServiceImpl implements CommandeService {
                 .montantTotal(montantTotal)
                 .platsCommandes(lignes)
                 .nombrePlats(lignes.size())
-                .build();
+                .build();*/
     }
 
     private BigDecimal calculerMontantTotal(Commande commande) {
@@ -185,4 +197,15 @@ public class CommandeServiceImpl implements CommandeService {
                 .map(c -> mapToResponse(c, calculerMontantTotal(c)))
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<CommandeResponse> getAllCommandesByStatut(StatutCommande statut) {
+        return commandeRepository.findByStatut(statut).stream()
+                .map(c -> mapToResponse(c, calculerMontantTotal(c)))
+                .collect(Collectors.toList());
+    }
+    
+ 
+	
+    
 }

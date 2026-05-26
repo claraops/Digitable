@@ -19,6 +19,13 @@ public class MenuController {
     private final MenuRepository menuRepository;
     private final PlatRepository platRepository;
     
+ // ✅ AJOUTER CETTE MÉTHODE
+    @GetMapping
+    public ResponseEntity<List<Menu>> getAllMenus() {
+        return ResponseEntity.ok(menuRepository.findAll());
+    }
+  
+   
     @GetMapping("/actifs")
     public ResponseEntity<List<Menu>> getMenusActifs() {
         return ResponseEntity.ok(menuRepository.findByActifTrue());

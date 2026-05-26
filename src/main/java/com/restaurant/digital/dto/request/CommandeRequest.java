@@ -14,5 +14,9 @@ public class CommandeRequest {
     
     @NotNull(message = "La liste des plats est obligatoire")
     private List<LigneCommandeRequest> plats;
+    
+    public Integer getUserId() { return userId; }
+    public Integer getTablesId() { return tablesId; }
+    public List<LigneCommandeRequest> getPlats() { return plats; }
 }
 

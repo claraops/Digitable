@@ -3,6 +3,9 @@ package com.restaurant.digital.controller;
 import com.restaurant.digital.model.entity.Avis;
 import com.restaurant.digital.repository.AvisRepository;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,5 +21,10 @@ public class AvisController {
     public ResponseEntity<Avis> creerAvis(@RequestBody Avis avis) {
         avis.setDateAvis(java.time.LocalDateTime.now());
         return new ResponseEntity<>(avisRepository.save(avis), HttpStatus.CREATED);
+    }
+    
+    @GetMapping
+    public ResponseEntity<List<Avis>> getAllAvis() {
+        return ResponseEntity.ok(avisRepository.findAll());
     }
 }

@@ -18,6 +18,13 @@ public class AdminCommandeController {
 
     private final CommandeService commandeService;
 
+    // ✅ Mettre cette méthode EN PREMIER (sans path variable)
+    @GetMapping
+    public ResponseEntity<List<CommandeResponse>> getAllCommandes() {
+        return ResponseEntity.ok(commandeService.getAllCommandes());
+    }
+
+    // ✅ Ensuite la méthode avec path variable
     @GetMapping("/statut/{statut}")
     public ResponseEntity<List<CommandeResponse>> getCommandesByStatut(@PathVariable StatutCommande statut) {
         return ResponseEntity.ok(commandeService.getAllCommandesByStatut(statut));

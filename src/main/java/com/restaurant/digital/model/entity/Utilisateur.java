@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.restaurant.digital.model.enums.RoleUtilisateur;
 import java.util.*;
 
@@ -42,5 +44,6 @@ public class Utilisateur {
     private String telephone;
 
     @OneToMany(mappedBy = "utilisateur")
+    @JsonIgnore
     private List<Commande> commandes = new ArrayList<>();
 }

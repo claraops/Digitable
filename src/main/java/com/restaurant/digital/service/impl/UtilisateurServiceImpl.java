@@ -14,6 +14,7 @@ public class UtilisateurServiceImpl {
 
     private final UtilisateurRepository utilisateurRepository;
     private final PasswordEncoder passwordEncoder;
+    
 
     public Utilisateur inscrire(UtilisateurRequest request) {
         // Vérifier si l'email existe déjà

@@ -3,11 +3,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.springframework.boot</groupId>
+		 <groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.3</version>
+		<version>3.2.5</version>  <!-- ← Version stable, pas 4.0.3 -->
 		<relativePath/>
-	</parent>
+	</parent>    
 	
 	<groupId>com.restaurant</groupId>
 	<artifactId>restaurant-digital</artifactId>
@@ -65,7 +65,7 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
-		</dependency>
+		</dependency> 
 		
 		<!-- Test -->
 		<dependency>

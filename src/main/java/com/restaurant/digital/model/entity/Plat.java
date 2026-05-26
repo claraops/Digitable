@@ -4,10 +4,11 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.restaurant.digital.model.enums.CategoriePlat;
 import java.math.BigDecimal;
 import java.util.*;
-
-import com.restaurant.digital.model.enums.CategoriePlat;
 
 @Entity
 @Table(name = "PLAT")
@@ -36,15 +37,16 @@ public class Plat {
     @Column(name = "IMAGE_PLAT", nullable = false, length = 254)
     private String imagePlat;
     
- // dans Plat.java
     @Enumerated(EnumType.STRING)
     @Column(name = "CATEGORIE", nullable = false, length = 50)
     private CategoriePlat categorie;
     
     @OneToMany(mappedBy = "plat")
+    @JsonIgnore  // ← AJOUTER
     private List<Contenir> contenirs = new ArrayList<>();
     
     @ManyToMany(mappedBy = "plats")
+    @JsonIgnoreProperties("plats")
     private List<Menu> menus = new ArrayList<>();
     
     @ManyToMany
@@ -53,5 +55,6 @@ public class Plat {
         joinColumns = @JoinColumn(name = "_ID_PLAT"),
         inverseJoinColumns = @JoinColumn(name = "_ID_INGREDIENT")
     )
+    @JsonIgnore  // ← AJOUTER
     private List<Ingredient> ingredients = new ArrayList<>();
 }

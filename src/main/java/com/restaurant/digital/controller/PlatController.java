@@ -30,6 +30,8 @@ public class PlatController {
     public ResponseEntity<List<Plat>> getPlatsDisponibles() {
         return ResponseEntity.ok(platRepository.findByDisponibiliteTrue());
     }
+    
+    
 
     @GetMapping("/{id}")
     public ResponseEntity<Plat> getPlatById(@PathVariable Integer id) {

@@ -12,4 +12,12 @@ public class MenuRequest {
     private Boolean actif;
     private BigDecimal prixSpecial;
     private List<Integer> platIds;
+    
+    // Si Lombok ne fonctionne pas, ajoutez manuellement :
+    public String getNomMenu() { return nomMenu; }
+    public String getDescriptionMenu() { return descriptionMenu; }
+    public String getPhoto() { return photo; }
+    public Boolean getActif() { return actif; }
+    public BigDecimal getPrixSpecial() { return prixSpecial; }
+    public List<Integer> getPlatIds() { return platIds; }
 }

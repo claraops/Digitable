@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.restaurant.digital.model.enums.StatutTable;
 import java.util.*;
 
@@ -30,5 +31,6 @@ public class Tables {
     private Short capacite;
     
     @OneToMany(mappedBy = "tables")
-    private List<Commande> commandes = new ArrayList<>();
+    @JsonIgnore  
+    private List<Commande> commandes;
 }

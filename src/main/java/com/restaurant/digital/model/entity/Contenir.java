@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -18,11 +19,13 @@ public class Contenir {
     @Id
     @ManyToOne
     @JoinColumn(name = "_ID_COMMANDE", nullable = false)
+    @JsonIgnore  // ← AJOUTER
     private Commande commande;
 
     @Id
     @ManyToOne
     @JoinColumn(name = "_ID_PLAT", nullable = false)
+    @JsonIgnore  // ← AJOUTER
     private Plat plat;
 
     @Column(name = "QUANTITE", nullable = false)

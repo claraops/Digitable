@@ -12,4 +12,8 @@ public class LigneCommandeRequest {
     private Integer quantite;
     
     private String instructionSpeciale;
+    
+    public Integer getPlatId() { return platId; }
+    public Integer getQuantite() { return quantite; }
+    public String getInstructionSpeciale() { return instructionSpeciale; }
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 
 @Entity
@@ -18,8 +19,9 @@ public class Avis {
     @Column(name = "ID_AVIS")
     private Integer idAvis;
     
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "_ID_COMMANDE", nullable = false)
+    @JsonIgnore 
     private Commande commande;
     
     @Column(name = "NOTE", length = 254)

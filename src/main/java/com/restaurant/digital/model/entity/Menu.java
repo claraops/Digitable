@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.util.*;
@@ -34,13 +35,14 @@ public class Menu {
     
     @Column(name = "PHOTO", nullable = false, length = 254)
     private String photo;
-    
+   
     @ManyToMany
     @JoinTable(
         name = "INCLURE",
         joinColumns = @JoinColumn(name = "_ID_MENU"),
-        inverseJoinColumns = @JoinColumn(name = "_ID_PLAT")
+        inverseJoinColumns = @JoinColumn(name = "ID_PLAT")
     )
+    @JsonIgnoreProperties("menus")
     private List<Plat> plats = new ArrayList<>();
     
     @Column(name = "PRIX_SPECIAL")

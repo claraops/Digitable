@@ -13,5 +13,7 @@ public interface CommandeService {
     List<CommandeResponse> getCommandesByStatut(StatutCommande statut);
     Commande annulerCommande(Integer idCommande);
     List<CommandeResponse> getHistoriqueUtilisateur(Integer userId);
-    List<CommandeResponse> getAllCommandes(); // nouvelle méthode
+    List<CommandeResponse> getAllCommandes(); 
+    // ✅ AJOUTER CETTE MÉTHODE
+    List<CommandeResponse> getAllCommandesByStatut(StatutCommande statut);
 }

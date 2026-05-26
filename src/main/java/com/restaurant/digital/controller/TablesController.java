@@ -257,4 +257,6 @@ public class TablesController {
         response.put("existe", tablesRepository.existsByNumeroTable(numero));
         return ResponseEntity.ok(response);
     }
+    
+
 }

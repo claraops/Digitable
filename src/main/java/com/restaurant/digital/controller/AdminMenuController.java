@@ -66,6 +66,7 @@ public class AdminMenuController {
         return ResponseEntity.ok(menuRepository.save(menu));
     }
     
+    
     @DeleteMapping("/{menuId}/plats/{platId}")
     public ResponseEntity<Menu> retirerPlatDuMenu(@PathVariable Integer menuId, @PathVariable Integer platId) {
         Menu menu = menuRepository.findById(menuId).orElseThrow();

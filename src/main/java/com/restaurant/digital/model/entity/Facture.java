@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 
@@ -13,7 +14,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Facture {
-    
+	
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID_FACTURE")
@@ -21,6 +22,7 @@ public class Facture {
     
     @OneToOne
     @JoinColumn(name = "_ID_COMMANDE", nullable = false)
+    @JsonIgnore  // ← CHANGER: @JsonIgnoreProperties -> @JsonIgnore
     private Commande commande;
     
     @Column(name = "MODE_PAIEMENT", nullable = false, length = 254)
