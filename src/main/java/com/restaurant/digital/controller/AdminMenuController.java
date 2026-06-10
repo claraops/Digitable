@@ -60,16 +60,18 @@ public class AdminMenuController {
     
     @PostMapping("/{menuId}/plats/{platId}")
     public ResponseEntity<Menu> ajouterPlatAuMenu(@PathVariable Integer menuId, @PathVariable Integer platId) {
-        Menu menu = menuRepository.findById(menuId).orElseThrow();
-        Plat plat = platRepository.findById(platId).orElseThrow();
+        Menu menu = menuRepository.findById(menuId)
+            .orElseThrow(() -> new RuntimeException("Menu non trouvé avec l'id: " + menuId));
+        Plat plat = platRepository.findById(platId)
+            .orElseThrow(() -> new RuntimeException("Plat non trouvé avec l'id: " + platId));
         menu.getPlats().add(plat);
         return ResponseEntity.ok(menuRepository.save(menu));
     }
-    
-    
+
     @DeleteMapping("/{menuId}/plats/{platId}")
     public ResponseEntity<Menu> retirerPlatDuMenu(@PathVariable Integer menuId, @PathVariable Integer platId) {
-        Menu menu = menuRepository.findById(menuId).orElseThrow();
+        Menu menu = menuRepository.findById(menuId)
+            .orElseThrow(() -> new RuntimeException("Menu non trouvé"));
         menu.getPlats().removeIf(p -> p.getIdPlat().equals(platId));
         return ResponseEntity.ok(menuRepository.save(menu));
     }

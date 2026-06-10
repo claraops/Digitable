@@ -71,21 +71,20 @@ public class TablesController {
      * PUT /api/v1/tables/{id}
      */
     @PutMapping("/{id}")
-   /* public ResponseEntity<Tables> updateTable(@PathVariable Integer id, @RequestBody Tables tableDetails) {
+    public ResponseEntity<?> updateTable(@PathVariable Integer id, @RequestBody Tables tableDetails) {
         return tablesRepository.findById(id)
                 .map(table -> {
-                    // Vérifier si le nouveau numéro n'est pas déjà pris
                     if (!table.getNumeroTable().equals(tableDetails.getNumeroTable()) &&
                         tablesRepository.existsByNumeroTable(tableDetails.getNumeroTable())) {
-                        return ResponseEntity.<Tables>badRequest().build();
+                        return ResponseEntity.badRequest().build();
                     }
                     table.setNumeroTable(tableDetails.getNumeroTable());
                     table.setCapacite(tableDetails.getCapacite());
-                    // Ne pas modifier le statut ici
+                    table.setStatut(tableDetails.getStatut());
                     return ResponseEntity.ok(tablesRepository.save(table));
                 })
                 .orElse(ResponseEntity.notFound().build());
-    }*/
+    }
 
     /**
      * Supprimer une table

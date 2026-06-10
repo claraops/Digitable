@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 @Data
 @Builder
 public class LigneCommandeResponse {
+    private Integer platId;
     private String platNom;
     private String platImage;
     private Integer quantite;

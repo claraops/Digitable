@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 
 @Entity
@@ -26,6 +27,27 @@ public class Avis {
     
     @Column(name = "NOTE", length = 254)
     private String note;
+    
+    @JsonProperty("commandeId")
+    public Integer getCommandeId() {
+        return commande != null ? commande.getIdCommande() : null;
+    }
+
+    @JsonProperty("utilisateurPrenom")
+    public String getUtilisateurPrenom() {
+        if (commande != null && commande.getUtilisateur() != null) {
+            return commande.getUtilisateur().getPrenom();
+        }
+        return null;
+    }
+
+    @JsonProperty("utilisateurNom")
+    public String getUtilisateurNom() {
+        if (commande != null && commande.getUtilisateur() != null) {
+            return commande.getUtilisateur().getNom();
+        }
+        return null;
+    }
     
     @Column(name = "COMMENTAIRE", length = 254)
     private String commentaire;
