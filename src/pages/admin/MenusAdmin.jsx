@@ -194,24 +194,30 @@ export default function MenusAdmin() {
   };
 
   const handleAddPlatToMenu = async (plat) => {
-    if (!plat) return;
-    
-    if (editingMenu) {
-      try {
-        await menuService.addPlat(editingMenu.idMenu, plat.idPlat);
-        setSelectedPlats((prev) => [...prev, plat]);
-        toast.success(`"${plat.nomPlat}" ajouté au menu`);
-      } catch (error) {
-        console.error('Erreur addPlat:', error);
+  if (!plat) return;
+  
+  if (editingMenu) {
+    try {
+      console.log('Ajout du plat:', plat.idPlat, 'au menu:', editingMenu.idMenu);
+      await menuService.addPlat(editingMenu.idMenu, plat.idPlat);
+      setSelectedPlats((prev) => [...prev, plat]);
+      toast.success(`"${plat.nomPlat}" ajouté au menu`);
+    } catch (error) {
+      console.error('Erreur addPlat:', error);
+      if (error.response) {
+        console.error('Réponse backend:', error.response.data);
+        toast.error(error.response.data?.message || 'Erreur lors de l\'ajout du plat');
+      } else {
         toast.error('Erreur lors de l\'ajout du plat');
       }
-    } else {
-      if (!selectedPlats.find(p => p.idPlat === plat.idPlat)) {
-        setSelectedPlats((prev) => [...prev, plat]);
-        toast.success(`"${plat.nomPlat}" ajouté au menu`);
-      }
     }
-  };
+  } else {
+    if (!selectedPlats.find(p => p.idPlat === plat.idPlat)) {
+      setSelectedPlats((prev) => [...prev, plat]);
+      toast.success(`"${plat.nomPlat}" ajouté au menu`);
+    }
+  }
+};
 
   const handleRemovePlatFromMenu = async (platId, platNom) => {
     if (editingMenu) {
@@ -303,45 +309,45 @@ export default function MenusAdmin() {
       </div>
 
       {/* Desktop Table */}
-      <div className="bg-white-pure rounded-xl shadow-sm overflow-x-auto">
+      <div className="hidden md:block bg-white-pure rounded-xl shadow-sm overflow-x-auto border border-gray-light">
         {filteredMenus.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-dark">Aucun menu trouvé</p>
           </div>
         ) : (
-          <table className="w-full min-w-[768px]">
+          <table className="w-full">
             <thead className="bg-gray-light">
               <tr>
-                <th className="px-6 py-3 text-left">ID</th>
-                <th className="px-6 py-3 text-left">Nom</th>
-                <th className="px-6 py-3 text-left">Description</th>
-                <th className="px-6 py-3 text-left">Prix</th>
-                <th className="px-6 py-3 text-left">Plats</th>
-                <th className="px-6 py-3 text-left">Statut</th>
-                <th className="px-6 py-3 text-left">Actions</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">ID</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Nom</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Description</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Prix</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Plats</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Statut</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredMenus.map((menu) => (
                 <tr key={menu.idMenu} className="border-b border-gray-light hover:bg-gray-light/50 transition-colors">
-                  <td className="px-6 py-4">#{menu.idMenu}</td>
-                  <td className="px-6 py-4 font-medium">{menu.nomMenu}</td>
-                  <td className="px-6 py-4 text-sm text-gray-dark max-w-xs truncate">{menu.descriptionMenu || '-'}</td>
-                  <td className="px-6 py-4 text-gold font-semibold">{Number(menu.prixSpecial ?? 0).toFixed(2)} €</td>
-                  <td className="px-6 py-4 text-sm">{menu.plats?.length || 0} plat(s)</td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-3 font-medium text-sm">#{menu.idMenu}</td>
+                  <td className="px-3 py-3 font-medium text-sm">{menu.nomMenu}</td>
+                  <td className="px-3 py-3 text-sm text-gray-dark truncate max-w-[120px] lg:max-w-[200px]">{menu.descriptionMenu || '-'}</td>
+                  <td className="px-3 py-3 text-gold font-semibold text-sm whitespace-nowrap">{Number(menu.prixSpecial ?? 0).toFixed(2)} €</td>
+                  <td className="px-3 py-3 text-sm whitespace-nowrap">{menu.plats?.length || 0} plat(s)</td>
+                  <td className="px-3 py-3">
                     <span className={`px-2 py-1 rounded-full text-xs ${
                       menu.actif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}>
                       {menu.actif ? 'Actif' : 'Inactif'}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => openModal(menu)} className="text-blue-500 hover:text-blue-700">
+                      <button onClick={() => openModal(menu)} className="text-blue-500 hover:text-blue-700 transition-colors">
                         <Edit2 size={18} />
                       </button>
-                      <button onClick={() => handleDelete(menu.idMenu)} className="text-red-500 hover:text-red-700">
+                      <button onClick={() => handleDelete(menu.idMenu)} className="text-red-500 hover:text-red-700 transition-colors">
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -350,6 +356,43 @@ export default function MenusAdmin() {
               ))}
             </tbody>
           </table>
+        )}
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {filteredMenus.length === 0 ? (
+          <div className="text-center py-8 bg-white-pure rounded-xl">
+            <p className="text-gray-dark">Aucun menu trouvé</p>
+          </div>
+        ) : (
+          filteredMenus.map((menu) => (
+            <div key={menu.idMenu} className="bg-white-pure rounded-xl p-4 border border-gray-light shadow-sm">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <p className="font-semibold">{menu.nomMenu}</p>
+                  <p className="text-xs text-gray-dark truncate max-w-[40vw]">{menu.descriptionMenu || '-'}</p>
+                </div>
+                <span className="text-gold font-bold">{Number(menu.prixSpecial ?? 0).toFixed(2)} €</span>
+              </div>
+              <div className="flex items-center justify-between text-sm text-gray-dark mb-3">
+                <span>{menu.plats?.length || 0} plat(s)</span>
+                <span className={`px-2 py-0.5 rounded-full text-xs ${
+                  menu.actif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                }`}>
+                  {menu.actif ? 'Actif' : 'Inactif'}
+                </span>
+              </div>
+              <div className="flex justify-end gap-2 pt-2 border-t border-gray-light">
+                <button onClick={() => openModal(menu)} className="text-blue-500 text-sm hover:underline flex items-center gap-1">
+                  <Edit2 size={14} /> Modifier
+                </button>
+                <button onClick={() => handleDelete(menu.idMenu)} className="text-red-500 text-sm hover:underline flex items-center gap-1">
+                  <Trash2 size={14} /> Supprimer
+                </button>
+              </div>
+            </div>
+          ))
         )}
       </div>
 

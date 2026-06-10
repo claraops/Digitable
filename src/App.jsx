@@ -4,7 +4,8 @@ import { Toaster } from 'react-hot-toast';
 import NavigationBar from './components/Layout/Navbar';
 import { ErrorBoundary } from './components/Common/ErrorBoundary';
 import { AuthProvider } from './hooks/useAuth.jsx';
-import { CartProvider } from './context/CartProvider.jsx';  // ✅ CHANGEMENT ICI
+import { CartProvider } from './context/CartProvider.jsx';
+import { I18nProvider } from './i18n/I18nContext';
 
 
 // Pages client
@@ -15,11 +16,11 @@ import OrderTracking from './pages/OrderTracking';
 import Profile from './pages/Profile';
 import Auth from './pages/Auth';
 import CommandesPage from './pages/CommandesPage';
-import FacturesPage from './pages/FacturesPage';
+import FacturesPage from './pages/MyFactures';
 import AvisPage from './pages/AvisPage';
 import TablesPage from './pages/Tables';
-import MyFactures from './pages/MyFactures';
 import PlatDetail from './pages/PlatDetail';
+import KitchenDashboard from './pages/staff/KitchenDashboard';
 
 // Pages admin
 import AdminLayout from './pages/admin/AdminLayout';
@@ -36,8 +37,9 @@ const CommanderPage = () => <div className="container mt-4"><h2>🍕 Passer une 
 function App() {
   return (
     <ErrorBoundary>
+      <I18nProvider>
       <AuthProvider>
-        <CartProvider>  {/* ✅ Maintenant ça fonctionne */}
+        <CartProvider>
           <Toaster position="top-right" />
           <Router>
             <Routes>
@@ -50,12 +52,13 @@ function App() {
                 <Route path="/factures" element={<FacturesPage />} />
                 <Route path="/avis" element={<AvisPage />} />
                 <Route path="/cart" element={<Cart />} />
-                <Route path="/tracking" element={<OrderTracking />} />
+                <Route path="/tracking/:id" element={<OrderTracking />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/login" element={<Auth />} />
                 <Route path="/register" element={<Auth />} />
-                <Route path="/mes-factures" element={<MyFactures />} />
                 <Route path="/plat/:id" element={<PlatDetail />} />
+                <Route path="/staff/kitchen" element={<KitchenDashboard />} />
+
               </Route>
 
               <Route path="/admin" element={<AdminLayout />}>
@@ -72,6 +75,7 @@ function App() {
           </Router>
         </CartProvider>
       </AuthProvider>
+      </I18nProvider>
     </ErrorBoundary>
   );
 }

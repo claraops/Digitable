@@ -1,11 +1,8 @@
-// services/avisService.js
 import api from './api';
 
 export const avisService = {
-  // Récupérer tous les avis
   getAll: async () => {
     try {
-      // ✅ Supprimez '/api/v1' car déjà dans baseURL
       const response = await api.get('/avis');
       return response;
     } catch (error) {
@@ -13,23 +10,37 @@ export const avisService = {
       return { data: [] };
     }
   },
-  
-  // Récupérer un avis par ID
+
   getById: async (id) => {
     return await api.get(`/avis/${id}`);
   },
-  
-  // Récupérer les avis par commande
+
   getByCommande: async (commandeId) => {
-    return await api.get(`/avis/commande/${commandeId}`);
+    try {
+      const response = await api.get('/avis');
+      const avis = (Array.isArray(response.data) ? response.data : [])
+        .find(a => (a.commande?.idCommande || a._ID_COMMANDE) === commandeId);
+      return { data: avis || null };
+    } catch (error) {
+      console.error('Erreur getByCommande:', error);
+      return { data: null };
+    }
   },
-  
-  // Créer un avis
+
+  getByPlatId: async (platId) => {
+    try {
+      const response = await api.get(`/avis/plat/${platId}`);
+      return response;
+    } catch (error) {
+      console.error('Erreur getByPlatId:', error);
+      return { data: [] };
+    }
+  },
+
   create: async (avisData) => {
     return await api.post('/avis', avisData);
   },
-  
-  // Supprimer un avis
+
   delete: async (id) => {
     return await api.delete(`/avis/${id}`);
   }

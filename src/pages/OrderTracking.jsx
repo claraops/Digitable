@@ -2,19 +2,21 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, Clock, CookingPot, Truck, PackageCheck, MapPin } from 'lucide-react';
 import { commandeService } from '../services/commandeService';
+import { useTranslation } from '../i18n/I18nContext';
 import Loader from '../components/Common/Loader';
 import toast from 'react-hot-toast';
 
-const steps = [
-  { id: 'EN_ATTENTE', label: 'Commande reçue', icon: Clock, color: 'bg-gray-light' },
-  { id: 'EN_PREPARATION', label: 'En préparation', icon: CookingPot, color: 'bg-blue-500' },
-  { id: 'PRETE', label: 'Prête', icon: PackageCheck, color: 'bg-gold' },
-  { id: 'SERVIE', label: 'Livrée', icon: Truck, color: 'bg-green-500' },
+const stepIds = [
+  { id: 'EN_ATTENTE', icon: Clock, color: 'bg-gray-light' },
+  { id: 'EN_PREPARATION', icon: CookingPot, color: 'bg-blue-500' },
+  { id: 'PRETE', icon: PackageCheck, color: 'bg-gold' },
+  { id: 'SERVIE', icon: Truck, color: 'bg-green-500' },
 ];
 
 export default function OrderTracking() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [commande, setCommande] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -31,6 +33,16 @@ export default function OrderTracking() {
     }
   }, [id, navigate]);
 
+  const steps = stepIds.map(s => ({
+    ...s,
+    label: t('orders.tracking.' + ({
+      'EN_ATTENTE': 'received',
+      'EN_PREPARATION': 'preparing',
+      'PRETE': 'ready',
+      'SERVIE': 'served'
+    }[s.id])
+  )}));
+
   const getCurrentStepIndex = () => {
     if (!commande) return 0;
     const index = steps.findIndex(step => step.id === commande.statut);
@@ -46,12 +58,12 @@ export default function OrderTracking() {
       <div className="container mx-auto px-4 max-w-5xl">
         {/* Header */}
         <div className="bg-white-pure rounded-xl p-6 mb-8 text-center">
-          <h1 className="text-2xl font-bold mb-2">Suivi de commande</h1>
-          <p className="text-gray-dark">Commande #{commande.idCommande}</p>
+          <h1 className="text-2xl font-bold mb-2">{t('orders.tracking.title')}</h1>
+          <p className="text-gray-dark">{t('orders.orderNumber')} #{commande.idCommande}</p>
           <div className="mt-4 p-3 bg-gray-light rounded-lg">
             <div className="flex items-center justify-center gap-2">
               <MapPin size={18} className="text-gold" />
-              <span className="text-sm">Livraison à : Table {commande.numeroTable}</span>
+              <span className="text-sm">{t('orders.table')} {commande.numeroTable}</span>
             </div>
           </div>
         </div>
@@ -96,7 +108,7 @@ export default function OrderTracking() {
 
         {/* Order Details */}
         <div className="bg-white-pure rounded-xl p-6">
-          <h2 className="text-xl font-bold mb-4">Détails de la commande</h2>
+          <h2 className="text-xl font-bold mb-4">{t('orders.dishes')}</h2>
           
           <div className="space-y-3">
             {commande.platsCommandes?.map((plat, idx) => (
@@ -112,7 +124,7 @@ export default function OrderTracking() {
             ))}
             
             <div className="flex justify-between pt-3 mt-2">
-              <span className="font-bold">Total</span>
+              <span className="font-bold">{t('common.total')}</span>
               <span className="text-xl font-bold text-gold">{commande.montantTotal} €</span>
             </div>
           </div>
@@ -121,7 +133,7 @@ export default function OrderTracking() {
             onClick={() => navigate('/menu')}
             className="btn-primary w-full mt-6"
           >
-            Commander à nouveau
+            {t('orders.orderAgain')}
           </button>
         </div>
       </div>

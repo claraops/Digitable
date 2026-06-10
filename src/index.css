@@ -80,8 +80,8 @@
 /* Reusable Components */
 @layer components {
   .btn-primary {
-    @apply bg-gold text-black-deep px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold 
-           transition-all duration-300 hover:bg-opacity-90 hover:scale-105 active:scale-95
+    @apply bg-black-deep text-white px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold 
+           transition-all duration-300 hover:bg-gray-800 active:scale-95
            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
            inline-flex items-center justify-center whitespace-nowrap;
   }
@@ -285,11 +285,11 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #FFD700;
+  background: #F4B400;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #e6c200;
+  background: #D4A000;
 }
 }

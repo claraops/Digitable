@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useTranslation } from '../i18n/I18nContext';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
 export default function Auth() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t, changeLanguage } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -31,6 +33,9 @@ export default function Auth() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'langue') {
+      changeLanguage(value);
+    }
   };
 
   // Validation des champs avant envoi
@@ -87,34 +92,7 @@ export default function Auth() {
     const toastId = toast.loading(isLogin ? 'Connexion en cours...' : 'Inscription en cours...');
 
     try {
-      /*if (isLogin) {
-        // Connexion
-        const response = await api.post('/auth/login', {
-          email: formData.email.trim(),
-          password: formData.password
-        });
-        
-        if (response.data) {
-          // Stocker le token JWT (pas Basic Auth)
-          if (response.data.token) {
-            localStorage.setItem('token', response.data.token);
-          }
-          
-          // Stocker le Basic Auth pour la compatibilité
-          const basicAuth = btoa(`${formData.email.trim()}:${formData.password}`);
-          localStorage.setItem('basicAuth', basicAuth);
-          
-          // Stocker les infos utilisateur
-          localStorage.setItem('user', JSON.stringify(response.data.user || response.data));
-          
-          login(response.data);
-          toast.success('Connexion réussie !', { id: toastId });
-          
-          // Redirection après un court délai
-          setTimeout(() => navigate('/'), 500);
-        }*/
-
-      // Dans Auth.jsx - handleSubmit pour la connexion
+      // Connexion / Inscription
       if (isLogin) {
           const response = await api.post('/auth/login', {
               email: formData.email.trim(),
@@ -125,10 +103,11 @@ export default function Auth() {
               const token = response.data.token;
               const basicAuth = btoa(`${formData.email.trim()}:${formData.password}`);
               
-              // ✅ Appel du login avec les deux méthodes
-              login(response.data.user || response.data, token, basicAuth);
-              
-              toast.success('Connexion réussie !');
+               // ✅ Appel du login avec les deux méthodes
+               login(response.data.user || response.data, token, basicAuth);
+               changeLanguage(response.data.user?.langue || formData.langue);
+               
+               toast.success('Connexion réussie !');
               navigate('/');
         }
       } else {
@@ -148,17 +127,11 @@ export default function Auth() {
         const response = await api.post('/auth/register', payload);
         
         if (response.data) {
-          // Stocker le token JWT
-          if (response.data.token) {
-            localStorage.setItem('token', response.data.token);
-          }
-          
-          // Stocker le Basic Auth
+          const token = response.data.token;
           const basicAuth = btoa(`${formData.email.trim()}:${formData.password}`);
-          localStorage.setItem('basicAuth', basicAuth);
           
-          localStorage.setItem('user', JSON.stringify(response.data.user || response.data));
-          login(response.data);
+          login(response.data.user || response.data, token, basicAuth);
+          changeLanguage(formData.langue);
           toast.success('Inscription réussie !', { id: toastId });
           
           setTimeout(() => navigate('/'), 500);

@@ -142,45 +142,46 @@ export default function UtilisateursAdmin() {
         />
       </div>
 
-      <div className="bg-white-pure rounded-xl shadow-sm overflow-x-auto">
+      {/* Desktop Table */}
+      <div className="hidden md:block bg-white-pure rounded-xl shadow-sm overflow-x-auto border border-gray-light">
         {filteredUsers.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-dark">Aucun utilisateur trouvé</p>
           </div>
         ) : (
-          <table className="w-full min-w-[768px]">
+          <table className="w-full">
             <thead className="bg-gray-light">
               <tr>
-                <th className="px-6 py-3 text-left">ID</th>
-                <th className="px-6 py-3 text-left">Nom</th>
-                <th className="px-6 py-3 text-left">Email</th>
-                <th className="px-6 py-3 text-left">Téléphone</th>
-                <th className="px-6 py-3 text-left">Rôle</th>
-                <th className="px-6 py-3 text-left">Langue</th>
-                <th className="px-6 py-3 text-left">Actions</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">ID</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Nom</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Email</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Téléphone</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Rôle</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Langue</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map((user) => (
-                <tr key={user.idUser} className="border-b border-gray-light hover:bg-gray-light/50">
-                  <td className="px-6 py-4">#{user.idUser}</td>
-                  <td className="px-6 py-4 font-medium">{user.prenom} {user.nom}</td>
-                  <td className="px-6 py-4 text-sm text-gray-dark">{user.email}</td>
-                  <td className="px-6 py-4 text-sm text-gray-dark">{user.telephone || '—'}</td>
-                  <td className="px-6 py-4 text-sm">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      user.role === 'ADMIN' ? 'bg-gold text-black-deep' : 'bg-gray-light text-gray-dark'
+                <tr key={user.idUser} className="border-b border-gray-light hover:bg-gray-light/50 transition-colors">
+                  <td className="px-3 py-3 font-medium text-sm">#{user.idUser}</td>
+                  <td className="px-3 py-3 font-medium text-sm whitespace-nowrap">{user.prenom} {user.nom}</td>
+                  <td className="px-3 py-3 text-sm text-gray-dark">{user.email}</td>
+                  <td className="px-3 py-3 text-sm text-gray-dark whitespace-nowrap">{user.telephone || '—'}</td>
+                  <td className="px-3 py-3 text-sm">
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${
+                      user.role === 'ADMIN' ? 'bg-gold text-white font-medium' : 'bg-gray-light text-gray-dark'
                     }`}>
                       {user.role}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm">{user.langue}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-3 text-sm">{user.langue}</td>
+                  <td className="px-3 py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => openModal(user)} className="text-blue-500 hover:text-blue-700">
+                      <button onClick={() => openModal(user)} className="text-blue-500 hover:text-blue-700 transition-colors">
                         <Edit2 size={18} />
                       </button>
-                      <button onClick={() => handleDelete(user.idUser)} className="text-red-500 hover:text-red-700">
+                      <button onClick={() => handleDelete(user.idUser)} className="text-red-500 hover:text-red-700 transition-colors">
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -189,6 +190,47 @@ export default function UtilisateursAdmin() {
               ))}
             </tbody>
           </table>
+        )}
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {filteredUsers.length === 0 ? (
+          <div className="text-center py-8 bg-white-pure rounded-xl">
+            <p className="text-gray-dark">Aucun utilisateur trouvé</p>
+          </div>
+        ) : (
+          filteredUsers.map((user) => (
+            <div key={user.idUser} className="bg-white-pure rounded-xl p-4 border border-gray-light shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold">
+                    {user.prenom?.[0]}{user.nom?.[0]}
+                  </div>
+                  <div>
+                    <p className="font-semibold">{user.prenom} {user.nom}</p>
+                    <p className="text-xs text-gray-dark">{user.email}</p>
+                  </div>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  user.role === 'ADMIN' ? 'bg-gold text-white' : 'bg-gray-light text-gray-dark'
+                }`}>
+                  {user.role}
+                </span>
+              </div>
+              <div className="text-sm text-gray-dark mb-3">
+                <span>{user.telephone || '—'} · {user.langue}</span>
+              </div>
+              <div className="flex justify-end gap-2 pt-2 border-t border-gray-light">
+                <button onClick={() => openModal(user)} className="text-blue-500 text-sm hover:underline flex items-center gap-1">
+                  <Edit2 size={14} /> Modifier
+                </button>
+                <button onClick={() => handleDelete(user.idUser)} className="text-red-500 text-sm hover:underline flex items-center gap-1">
+                  <Trash2 size={14} /> Supprimer
+                </button>
+              </div>
+            </div>
+          ))
         )}
       </div>
 

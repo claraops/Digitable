@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import toast from 'react-hot-toast';
 import Loader from '../components/Common/Loader';
 import tableImage from '../assets/table.avif';
+import tableIcon from '../assets/tableicn.png';
 
 export default function TablesPage() {
   const [tables, setTables] = useState([]);
@@ -22,27 +23,35 @@ export default function TablesPage() {
     fetchTables();
   }, []);
 
-  const fetchTables = async () => {
-    try {
-      setLoading(true);
-      const response = await tablesService.getAll();
-      
-      let tablesData = [];
-      if (Array.isArray(response.data)) {
-        tablesData = response.data;
-      } else if (response.data?.content) {
-        tablesData = response.data.content;
-      }
-      
-      setTables(tablesData);
-    } catch (error) {
-      console.error('Erreur chargement tables:', error);
-      toast.error('Erreur lors du chargement des tables');
-      setTables([]);
-    } finally {
-      setLoading(false);
+  // Dans Tables.jsx, modifiez la fonction fetchTables
+const fetchTables = async () => {
+  try {
+    setLoading(true);
+    const response = await tablesService.getAll();
+    
+    let tablesData = [];
+    if (Array.isArray(response.data)) {
+      tablesData = response.data;
+    } else if (response.data?.content) {
+      tablesData = response.data.content;
     }
-  };
+    
+    // ✅ Normaliser les IDs (l'entité Java utilise idTables)
+    const normalizedTables = tablesData.map(table => ({
+      ...table,
+      idTable: table.idTables || table.idTable,
+      idTables: table.idTables
+    }));
+    
+    setTables(normalizedTables);
+  } catch (error) {
+    console.error('Erreur chargement tables:', error);
+    toast.error('Erreur lors du chargement des tables');
+    setTables([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSelectTable = (table) => {
     if (!isAuthenticated()) {
@@ -64,18 +73,30 @@ export default function TablesPage() {
     }
   };
 
-  const handleReserveAndOrder = () => {
+  /*const handleReserveAndOrder = () => {
     if (!selectedTable) return;
     
-    // Sauvegarder les informations de réservation
     const reservationInfo = {
       ...selectedTable,
       reservationDate: reservationDate || new Date().toISOString().split('T')[0],
       reservationTime: reservationTime || 'maintenant',
       reservationName: reservationName,
       reservationTimestamp: new Date().toISOString()
-    };
-    
+    };*/
+
+  const handleReserveAndOrder = () => {
+    if (!selectedTable) return;
+  
+  // Assurez-vous que selectedTable a un champ idTable
+  console.log('Table sélectionnée à sauvegarder:', selectedTable);
+  
+  const reservationInfo = {
+    ...selectedTable,
+    idTable: selectedTable.idTable || selectedTable.ID_TABLES || selectedTable.id,
+    reservationDate: reservationDate || new Date().toISOString().split('T')[0],
+    reservationTime: reservationTime || 'maintenant',
+    reservationName: reservationName
+  };
     localStorage.setItem('selectedTable', JSON.stringify(reservationInfo));
     localStorage.setItem('reservationInfo', JSON.stringify(reservationInfo));
     
@@ -119,7 +140,7 @@ export default function TablesPage() {
             Sélectionnez une table disponible pour commencer votre commande
           </p>
           {!isAuthenticated() && (
-            <div className="mt-4 inline-flex items-center gap-2 bg-amber-500/90 text-white px-4 py-2 rounded-full text-sm backdrop-blur-sm">
+            <div className="mt-4 inline-flex items-center gap-2 bg-gold text-black-deep px-4 py-2 rounded-full text-sm backdrop-blur-sm">
               <AlertCircle size={16} />
               Veuillez vous connecter pour sélectionner une table
             </div>
@@ -148,7 +169,7 @@ export default function TablesPage() {
           </div>
         </div>
 
-        {/* Tables Grid */}
+        {/* Tables Grid - Version avec icône circulaire */}
         {tables.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
             <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,47 +203,67 @@ export default function TablesPage() {
                     </div>
                   )}
                   
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center">
-                      <svg className="w-6 h-6 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M6 14h12m-7-4V4m4 6V4M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
+                  {/* Icône circulaire en haut */}
+                  <div className="flex justify-center mb-4">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gold/20 to-gold/5 flex items-center justify-center shadow-inner border-2 border-gold/30">
+                      <img 
+                        src={tableIcon} 
+                        alt="Table" 
+                        className="w-12 h-12 object-contain"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                      {!tableIcon && (
+                        <svg className="w-10 h-10 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M6 14h12m-7-4V4m4 6V4M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      )}
                     </div>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${color} flex items-center gap-1 border`}>
-                      <Icon size={10} />
+                  </div>
+                  
+                  {/* Informations table */}
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold mb-1">Table {table.numeroTable}</h3>
+                    
+                    <div className="flex items-center justify-center gap-3 text-gray-500 text-sm mb-2">
+                      <div className="flex items-center gap-1">
+                        <Users size={14} />
+                        <span>{table.capacite} pers.</span>
+                      </div>
+                      {table.localisation && (
+                        <div className="flex items-center gap-1">
+                          <span>📍</span>
+                          <span className="text-xs">{table.localisation}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Badge statut */}
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${color}`}>
+                      <Icon size={12} />
                       {label}
                     </span>
+                    
+                    {isAvailable && (
+                      <div className="mt-4 pt-3 border-t border-gray-100">
+                        <span className="text-gold text-xs font-medium flex items-center justify-center gap-1">
+                          Sélectionner →
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  
-                  <h3 className="text-xl font-bold mb-1">Table {table.numeroTable}</h3>
-                  
-                  <div className="flex items-center gap-1 text-gray-500 text-xs mb-3">
-                    <Users size={14} />
-                    <span>{table.capacite} personne(s)</span>
-                  </div>
-                  
-                  {isAvailable && (
-                    <div className="mt-3 pt-3 border-t border-gray-100">
-                      <span className="text-gold text-xs font-medium flex items-center gap-1">
-                        Sélectionner →
-                      </span>
-                    </div>
-                  )}
                 </div>
               );
             })}
           </div>
         )}
 
-        {/* Modal de réservation */}
+        {/* Modal de réservation (inchangé) */}
         {showReservationModal && selectedTable && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl p-6 w-full max-w-md transform transition-all">
               <div className="text-center mb-5">
                 <div className="w-14 h-14 bg-gold/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-7 h-7 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M6 14h12m-7-4V4m4 6V4M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
+                  <img src={tableIcon} alt="Table" className="w-7 h-7 object-contain" />
                 </div>
                 <h2 className="text-xl font-bold">Table {selectedTable.numeroTable}</h2>
                 <p className="text-gray-500 text-sm">Capacité: {selectedTable.capacite} personnes</p>
@@ -273,7 +314,7 @@ export default function TablesPage() {
               <div className="flex gap-3">
                 <button
                   onClick={handleReserveAndOrder}
-                  className="flex-1 bg-gold hover:bg-gold/90 text-black-deep py-2.5 rounded-xl font-semibold transition-all"
+                  className="flex-1 bg-black-deep hover:bg-gray-800 text-white py-2.5 rounded-xl font-semibold transition-all"
                 >
                   Commander maintenant
                 </button>
