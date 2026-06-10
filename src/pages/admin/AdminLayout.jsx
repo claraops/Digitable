@@ -93,13 +93,13 @@ export default function AdminLayout() {
           </button>
         </div>
 
-        {/* Sidebar */}
-        <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-black-deep text-white-pure transform transition-transform duration-300 md:relative md:inset-auto md:translate-x-0 md:w-64 ${
+        {/* Sidebar - fixed */}
+        <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-black-deep text-white-pure transform transition-transform duration-300 md:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        } shadow-lg md:shadow-none`}>
+        } shadow-lg`}>
           <div className="p-4 sm:p-6 border-b border-white/10">
             <h1 className="text-xl sm:text-2xl font-bold">
-              Menu<span className="text-gold">Admin</span>
+              Menu<span className="text-gold/80">Admin</span>
             </h1>
             <p className="text-gray-light text-xs sm:text-sm mt-2">Gestion complète</p>
           </div>
@@ -113,7 +113,7 @@ export default function AdminLayout() {
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 sm:px-6 py-3 transition-colors text-sm sm:text-base ${
                     isActive 
-                      ? 'bg-gold text-black-deep font-semibold' 
+                      ? 'bg-gold/20 text-gold font-semibold border-r-2 border-gold' 
                       : 'hover:bg-gray-dark hover:bg-opacity-20'
                   }`
                 }
@@ -138,14 +138,11 @@ export default function AdminLayout() {
 
         {/* Mobile Overlay */}
         {mobileOpen && (
-          <div 
-            className="fixed inset-0 z-30 bg-black-deep/40 md:hidden" 
-            onClick={closeMobile} 
-          />
+          <div className="fixed inset-0 z-30 bg-black-deep/40 md:hidden" onClick={closeMobile} />
         )}
 
         {/* Main Content */}
-        <main className="flex-1 w-full md:ml-64">
+        <main className="flex-1 w-full min-w-0 md:ml-64">
           <div className="p-3 sm:p-4 md:p-8">
             <div className="mb-6 sm:mb-8 bg-white-pure border border-gray-light rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
               <div className="mb-4">

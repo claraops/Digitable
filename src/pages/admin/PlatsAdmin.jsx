@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Search, Utensils, Upload, X } from 'lucide-react';
 import { platService } from '../../services/platService';
 import api from '../../services/api';  // ✅ AJOUTER CET IMPORT
+import { getImageUrl } from '../../utils/imageUtils';
 import toast from 'react-hot-toast';
 import Loader from '../../components/Common/Loader';
 import { useAuth } from '../../hooks/useAuth';
@@ -260,32 +261,32 @@ const uploadImage = async (file) => {
       </div>
 
       {/* Desktop Table */}
-      <div className="bg-white-pure rounded-xl shadow-sm overflow-x-auto">
+      <div className="hidden md:block bg-white-pure rounded-xl shadow-sm overflow-x-auto border border-gray-light">
         {filteredPlats.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-dark">Aucun plat trouvé. Cliquez sur "Ajouter un plat" pour commencer.</p>
           </div>
         ) : (
-          <table className="w-full min-w-[768px]">
+          <table className="w-full">
             <thead className="bg-gray-light">
               <tr>
-                <th className="px-6 py-3 text-left">ID</th>
-                <th className="px-6 py-3 text-left">Image</th>
-                <th className="px-6 py-3 text-left">Nom</th>
-                <th className="px-6 py-3 text-left">Catégorie</th>
-                <th className="px-6 py-3 text-left">Prix</th>
-                <th className="px-6 py-3 text-left">Disponible</th>
-                <th className="px-6 py-3 text-left">Actions</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">ID</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Image</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Nom</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Catégorie</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Prix</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Disponible</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredPlats.map((plat) => (
                 <tr key={plat.idPlat} className="border-b border-gray-light hover:bg-gray-light/50 transition-colors">
-                  <td className="px-6 py-4">#{plat.idPlat}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-3 font-medium text-sm">#{plat.idPlat}</td>
+                  <td className="px-3 py-3">
                     {plat.imagePlat ? (
                       <img 
-                        src={`http://localhost:8080/api/v1/images/${plat.imagePlat}`}
+                        src={getImageUrl(plat.imagePlat)}
                         alt={plat.nomPlat} 
                         className="h-12 w-12 object-cover rounded-md" 
                         onError={(e) => { e.target.src = 'https://via.placeholder.com/48?text=No+img'; }}
@@ -294,22 +295,22 @@ const uploadImage = async (file) => {
                       <div className="h-12 w-12 bg-gray-light rounded-md flex items-center justify-center text-sm text-gray-dark">N/A</div>
                     )}
                   </td>
-                  <td className="px-6 py-4 font-medium text-black-deep">{plat.nomPlat}</td>
-                  <td className="px-6 py-4 text-sm text-gray-dark">{getCategoryLabel(plat.categorie)}</td>
-                  <td className="px-6 py-4 font-semibold text-gold">{Number(plat.prix ?? 0).toFixed(2)} €</td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-3 font-medium text-black-deep text-sm">{plat.nomPlat}</td>
+                  <td className="px-3 py-3 text-sm text-gray-dark whitespace-nowrap">{getCategoryLabel(plat.categorie)}</td>
+                  <td className="px-3 py-3 font-semibold text-gold text-sm whitespace-nowrap">{Number(plat.prix ?? 0).toFixed(2)} €</td>
+                  <td className="px-3 py-3">
                     <span className={`px-2 py-1 rounded-full text-xs ${
                       plat.disponibilite ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}>
                       {plat.disponibilite ? 'Disponible' : 'Indisponible'}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => openModal(plat)} className="text-blue-500 hover:text-blue-700">
+                      <button onClick={() => openModal(plat)} className="text-blue-500 hover:text-blue-700 transition-colors">
                         <Edit2 size={18} />
                       </button>
-                      <button onClick={() => handleDelete(plat.idPlat)} className="text-red-500 hover:text-red-700">
+                      <button onClick={() => handleDelete(plat.idPlat)} className="text-red-500 hover:text-red-700 transition-colors">
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -318,6 +319,54 @@ const uploadImage = async (file) => {
               ))}
             </tbody>
            </table>
+        )}
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {filteredPlats.length === 0 ? (
+          <div className="text-center py-8 bg-white-pure rounded-xl">
+            <p className="text-gray-dark">Aucun plat trouvé</p>
+          </div>
+        ) : (
+          filteredPlats.map((plat) => (
+            <div key={plat.idPlat} className="bg-white-pure rounded-xl p-4 border border-gray-light shadow-sm">
+              <div className="flex gap-3">
+                <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-light flex-shrink-0">
+                  {plat.imagePlat ? (
+                    <img 
+                      src={getImageUrl(plat.imagePlat)}
+                      alt={plat.nomPlat} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => { e.target.src = 'https://via.placeholder.com/64?text=N/A'; }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-dark text-xs">N/A</div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-semibold truncate">{plat.nomPlat}</p>
+                      <p className="text-xs text-gray-dark">{getCategoryLabel(plat.categorie)}</p>
+                    </div>
+                    <span className="text-gold font-bold">{Number(plat.prix ?? 0).toFixed(2)} €</span>
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${
+                      plat.disponibilite ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    }`}>
+                      {plat.disponibilite ? 'Disponible' : 'Indisponible'}
+                    </span>
+                    <div className="flex gap-2">
+                      <button onClick={() => openModal(plat)} className="text-blue-500 text-xs hover:underline">Modifier</button>
+                      <button onClick={() => handleDelete(plat.idPlat)} className="text-red-500 text-xs hover:underline">Supprimer</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
         )}
       </div>
 

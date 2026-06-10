@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 import { menuService } from '../services/menuService';
+import { avisService } from '../services/avisService';
+import { commandeService } from '../services/commandeService';
+import { getImageUrl } from '../utils/imageUtils';
+import { useTranslation } from '../i18n/I18nContext';
 import PPImage from '../assets/pp-canva.png';
 import petitPlat from '../assets/ptit-plat.avif';
 import petitEntre from '../assets/petit-entre.avif';
@@ -9,8 +13,25 @@ import petitDessert from '../assets/.petit-dessert.avif';
 import petiteBoisson from '../assets/petite-boisson.avif';
 
 export default function Home() {
+  const { t } = useTranslation();
   const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [menuNotes, setMenuNotes] = useState({});
+
+  const renderStars = (rating) => {
+    const stars = [];
+    const numStars = Math.round(parseFloat(rating) || 0);
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <Star 
+          key={i} 
+          size={14} 
+          className={i <= numStars ? 'fill-gold text-gold' : 'text-gray-300 fill-gray-300'}
+        />
+      );
+    }
+    return stars;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,6 +46,57 @@ export default function Home() {
           menusData = [];
         }
         setMenus(menusData);
+
+        // Calculer les notes moyennes par menu
+        try {
+          const [avisRes, commandesRes] = await Promise.all([
+            avisService.getAll(),
+            commandeService.getAll(),
+          ]);
+
+          if (Array.isArray(avisRes.data) && Array.isArray(commandesRes.data)) {
+            const commandeToPlats = {};
+            commandesRes.data.forEach(cmd => {
+              if (cmd.platsCommandes) {
+                cmd.platsCommandes.forEach(p => {
+                  const pid = p.platId || p.idPlat;
+                  if (pid) {
+                    if (!commandeToPlats[cmd.idCommande]) commandeToPlats[cmd.idCommande] = [];
+                    if (!commandeToPlats[cmd.idCommande].includes(pid)) commandeToPlats[cmd.idCommande].push(pid);
+                  }
+                });
+              }
+            });
+
+            const notesMap = {}, countMap = {};
+            avisRes.data.forEach(avis => {
+              const cmdId = avis.commande?.idCommande || avis._ID_COMMANDE;
+              const platIds = commandeToPlats[cmdId] || [];
+              const note = parseInt(avis.note) || 0;
+              platIds.forEach(pid => {
+                notesMap[pid] = (notesMap[pid] || 0) + note;
+                countMap[pid] = (countMap[pid] || 0) + 1;
+              });
+            });
+
+            const avgMap = {};
+            Object.keys(notesMap).forEach(pid => { avgMap[pid] = notesMap[pid] / countMap[pid]; });
+
+            // Moyenne par menu
+            const menuNotesMap = {};
+            menusData.forEach(menu => {
+              if (menu.plats && Array.isArray(menu.plats)) {
+                const notes = menu.plats.map(p => avgMap[p.idPlat]).filter(n => n);
+                menuNotesMap[menu.idMenu] = notes.length > 0
+                  ? (notes.reduce((a, b) => a + b, 0) / notes.length).toFixed(1)
+                  : 0;
+              }
+            });
+            setMenuNotes(menuNotesMap);
+          }
+        } catch (e) {
+          console.warn('Erreur chargement avis:', e);
+        }
       } catch (error) {
         console.error('Erreur chargement menus:', error);
         setMenus([]);
@@ -35,18 +107,11 @@ export default function Home() {
     fetchData();
   }, []);
 
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    if (imagePath.startsWith('http')) return imagePath;
-    if (imagePath.startsWith('/api/v1/images/')) return `http://localhost:8080${imagePath}`;
-    return `http://localhost:8080/api/v1/images/${imagePath}`;
-  };
-
   const categories = [
-    { name: 'Entrées', image: petitEntre, link: '/menu?category=entrees' },
-    { name: 'Nos Plats', image: petitPlat, link: '/menu?category=plats' },
-    { name: 'Desserts', image: petitDessert, link: '/menu?category=desserts' },
-    { name: 'Boissons', image: petiteBoisson, link: '/menu?category=boissons' }
+    { name: t('menu.starters'), image: petitEntre, link: '/menu?category=entrees' },
+    { name: t('menu.mainCourses'), image: petitPlat, link: '/menu?category=plats' },
+    { name: t('menu.desserts'), image: petitDessert, link: '/menu?category=desserts' },
+    { name: t('menu.beverages'), image: petiteBoisson, link: '/menu?category=boissons' }
   ];
 
   return (
@@ -58,13 +123,13 @@ export default function Home() {
             <div className="lg:col-span-7">
               <div className="max-w-2xl">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-4 text-black-deep">
-                  Commandez vos meilleurs plats <span className="block">et soyez servi sur place en deux clics</span>
+                  {t('home.heroTitle')} <span className="block">{t('home.heroSubtitle')}</span>
                 </h1>
                 <p className="max-w-xl text-sm sm:text-base lg:text-lg mb-6 text-black-deep/70">
-                  Menu digital pour restaurant : passez votre commande directement depuis votre table et recevez votre plat sans attendre.
+                  {t('home.heroDesc')}
                 </p>
                 <Link to="/menu" className="inline-flex items-center justify-center gap-2 bg-black-deep text-white-pure px-6 py-3 rounded-xl text-sm sm:text-base font-semibold shadow-lg hover:bg-gray-900 transition-all duration-300">
-                  Voir la carte
+                  {t('home.viewMenu')}
                   <ArrowRight size={20} />
                 </Link>
               </div>
@@ -82,8 +147,8 @@ export default function Home() {
       <section className="w-full py-10 bg-gray-light">
         <div className="container-responsive">
           <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-2">Nos Catégories</h2>
-            <p className="text-gray-dark text-sm">Découvrez nos spécialités</p>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-2">{t('home.categories')}</h2>
+            <p className="text-gray-dark text-sm">{t('home.categoriesDesc')}</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
             {categories.map(cat => (
@@ -116,8 +181,8 @@ export default function Home() {
       <section className="w-full py-16 bg-white">
         <div className="container-responsive">
           <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-2">Nos Menus</h2>
-            <p className="text-gray-dark text-sm">Des compositions savoureuses à prix avantageux</p>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-2">{t('home.menus')}</h2>
+            <p className="text-gray-dark text-sm">{t('home.menusDesc')}</p>
           </div>
           
           {loading ? (
@@ -135,9 +200,9 @@ export default function Home() {
             </div>
           ) : menus.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-dark">Aucun menu disponible pour le moment.</p>
+              <p className="text-gray-dark">{t('home.noMenus')}</p>
               <Link to="/menu" className="btn-primary inline-block mt-4">
-                Voir la carte
+                {t('home.viewMenu')}
               </Link>
             </div>
           ) : (
@@ -154,6 +219,10 @@ export default function Home() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       onError={(e) => { e.target.src = 'https://placehold.co/400x300/e2e8f0/64748b?text=Image+non+disponible'; }}
                     />
+                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                      <div className="flex items-center gap-0.5">{renderStars(menuNotes[menu.idMenu])}</div>
+                      <span className="text-xs text-gray-600 ml-1">{menuNotes[menu.idMenu] || '0'}</span>
+                    </div>
                   </div>
                   <div className="p-5">
                     <h3 className="text-xl font-bold mb-2">{menu.nomMenu}</h3>
@@ -166,12 +235,12 @@ export default function Home() {
                         </span>
                         <p className="text-xs text-gray-dark mt-1">{menu.plats?.length || 0} plat(s) inclus</p>
                       </div>
-                      <Link 
-                        to={`/menu?menu=${menu.idMenu}`} 
-                        className="btn-secondary text-sm py-2 px-4"
-                      >
-                        Voir le menu
-                      </Link>
+                        <Link 
+                          to={`/menu?menu=${menu.idMenu}`} 
+                          className="btn-secondary text-sm py-2 px-4"
+                        >
+                          {t('menu.discover')}
+                        </Link>
                     </div>
                   </div>
                 </div>
@@ -184,12 +253,12 @@ export default function Home() {
       {/* CTA Section */}
       <section className="w-full bg-gold text-black-deep py-12">
         <div className="container-responsive text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-3">Prêt à commander ?</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3">{t('home.ready')}</h2>
           <p className="text-sm sm:text-base mb-6 text-black-deep/70">
-            Choisissez vos plats et recevez-les directement à votre table
+            {t('home.readyDesc')}
           </p>
           <Link to="/menu" className="inline-flex items-center gap-2 bg-black-deep text-white-pure px-8 py-3 rounded-xl font-bold hover:bg-gray-900 transition-all duration-300">
-            Voir la carte
+            {t('home.viewMenu')}
             <ArrowRight size={20} />
           </Link>
         </div>
