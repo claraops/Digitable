@@ -86,9 +86,15 @@ public class CommandeServiceImpl implements CommandeService {
         commande.setStatut(statut);
 
         if (statut == StatutCommande.SERVIE) {
-            Tables table = commande.getTables();
-            table.setStatut(StatutTable.A_NETTOYER);
-            tablesRepository.save(table);
+            try {
+                Tables table = commande.getTables();
+                if (table != null) {
+                    table.setStatut(StatutTable.A_NETTOYER);
+                    tablesRepository.save(table);
+                }
+            } catch (Exception e) {
+                // Table introuvable, ignorer
+            }
         }
 
         if (statut == StatutCommande.PAYEE && commande.getFacture() == null) {
@@ -122,9 +128,15 @@ public class CommandeServiceImpl implements CommandeService {
         }
 
         commande.setStatut(StatutCommande.ANNULEE);
-        Tables table = commande.getTables();
-        table.setStatut(StatutTable.LIBRE);
-        tablesRepository.save(table);
+        try {
+            Tables table = commande.getTables();
+            if (table != null) {
+                table.setStatut(StatutTable.LIBRE);
+                tablesRepository.save(table);
+            }
+        } catch (Exception e) {
+            // Table introuvable, ignorer
+        }
 
         return commandeRepository.save(commande);
     }
@@ -151,6 +163,7 @@ public class CommandeServiceImpl implements CommandeService {
     private CommandeResponse mapToResponse(Commande commande, BigDecimal montantTotal) {
         List<LigneCommandeResponse> lignes = commande.getContenirs().stream()
                 .map(c -> LigneCommandeResponse.builder()
+                        .platId(c.getPlat().getIdPlat())
                         .platNom(c.getPlat().getNomPlat())
                         .platImage(c.getPlat().getImagePlat())
                         .quantite(c.getQuantite())
@@ -159,30 +172,33 @@ public class CommandeServiceImpl implements CommandeService {
                         .instructionSpeciale(c.getInstructionSpeciale())
                         .build())
                 .collect(Collectors.toList());
-        
-        return CommandeResponse.builder()
-        	    .idCommande(commande.getIdCommande())
-        	    .utilisateurNom(commande.getUtilisateur().getNom())  // ← Vérifier getNom() pas getNom()
-        	    .utilisateurPrenom(commande.getUtilisateur().getPrenom())
-        	    .numeroTable(commande.getTables().getNumeroTable())
-        	    .dateCommande(commande.getDateCommande())
-        	    .statut(commande.getStatut().toString())
-        	    .montantTotal(montantTotal)
-        	    .platsCommandes(lignes)
-        	    .nombrePlats(lignes.size())
-        	    .build();
 
-        /*return CommandeResponse.builder()
+        String nom = "", prenom = "";
+        try {
+            nom = commande.getUtilisateur().getNom();
+            prenom = commande.getUtilisateur().getPrenom();
+        } catch (Exception e) {
+            // Utilisateur introuvable
+        }
+
+        Long numTable = null;
+        try {
+            numTable = commande.getTables().getNumeroTable();
+        } catch (Exception e) {
+            // Table introuvable
+        }
+
+        return CommandeResponse.builder()
                 .idCommande(commande.getIdCommande())
-                .utilisateurNom(commande.getUtilisateur().getNom())
-                .utilisateurPrenom(commande.getUtilisateur().getPrenom())
-                .numeroTable(commande.getTables().getNumeroTable())
+                .utilisateurNom(nom)
+                .utilisateurPrenom(prenom)
+                .numeroTable(numTable)
                 .dateCommande(commande.getDateCommande())
                 .statut(commande.getStatut().toString())
                 .montantTotal(montantTotal)
                 .platsCommandes(lignes)
                 .nombrePlats(lignes.size())
-                .build();*/
+                .build();
     }
 
     private BigDecimal calculerMontantTotal(Commande commande) {

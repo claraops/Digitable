@@ -5,7 +5,6 @@ import com.restaurant.digital.model.enums.StatutCommande;
 import com.restaurant.digital.service.interfaces.CommandeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin/commandes")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class AdminCommandeController {
 
     private final CommandeService commandeService;
