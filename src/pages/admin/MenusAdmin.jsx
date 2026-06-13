@@ -281,19 +281,11 @@ export default function MenusAdmin() {
 
   return (
     <div>
-      <div className="bg-gray-light rounded-3xl p-6 mb-8 shadow-sm border border-gray-light">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-gray-dark mb-2 flex items-center gap-2">
-              <MenuIcon size={18} /> Gérer le menu
-            </p>
-            <h1 className="text-3xl font-bold">Gestion des Menus</h1>
-            <p className="text-gray-dark mt-2">Créez, mettez à jour et organisez les menus avec vos plats.</p>
-          </div>
-          <button onClick={() => openModal()} className="btn-primary flex items-center gap-2 self-start md:self-auto">
-            <Plus size={20} /> Ajouter un menu
-          </button>
-        </div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-center md:text-left">Gestion des Menus</h1>
+        <button onClick={() => openModal()} className="btn-primary flex items-center gap-2 mt-3 md:mt-0">
+          <Plus size={20} /> Ajouter un menu
+        </button>
       </div>
 
       {/* Search */}
@@ -318,13 +310,13 @@ export default function MenusAdmin() {
           <table className="w-full">
             <thead className="bg-gray-light">
               <tr>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">ID</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Nom</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Description</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Prix</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Plats</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Statut</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Actions</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">ID</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Nom</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Description</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Prix</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Plats</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Statut</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -333,18 +325,18 @@ export default function MenusAdmin() {
                   <td className="px-3 py-3 font-medium text-sm">#{menu.idMenu}</td>
                   <td className="px-3 py-3 font-medium text-sm">{menu.nomMenu}</td>
                   <td className="px-3 py-3 text-sm text-gray-dark truncate max-w-[120px] lg:max-w-[200px]">{menu.descriptionMenu || '-'}</td>
-                  <td className="px-3 py-3 text-gold font-semibold text-sm whitespace-nowrap">{Number(menu.prixSpecial ?? 0).toFixed(2)} €</td>
+                  <td className="px-3 py-3 text-black-deep font-semibold text-sm whitespace-nowrap">{Number(menu.prixSpecial ?? 0).toFixed(2)} €</td>
                   <td className="px-3 py-3 text-sm whitespace-nowrap">{menu.plats?.length || 0} plat(s)</td>
                   <td className="px-3 py-3">
                     <span className={`px-2 py-1 rounded-full text-xs ${
-                      menu.actif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      menu.actif ? 'bg-gold/10 text-black-deep' : 'bg-gray-100 text-gray-400'
                     }`}>
                       {menu.actif ? 'Actif' : 'Inactif'}
                     </span>
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => openModal(menu)} className="text-blue-500 hover:text-blue-700 transition-colors">
+                      <button onClick={() => openModal(menu)} className="text-blue-600 hover:text-blue-800 transition-colors">
                         <Edit2 size={18} />
                       </button>
                       <button onClick={() => handleDelete(menu.idMenu)} className="text-red-500 hover:text-red-700 transition-colors">
@@ -373,21 +365,21 @@ export default function MenusAdmin() {
                   <p className="font-semibold">{menu.nomMenu}</p>
                   <p className="text-xs text-gray-dark truncate max-w-[40vw]">{menu.descriptionMenu || '-'}</p>
                 </div>
-                <span className="text-gold font-bold">{Number(menu.prixSpecial ?? 0).toFixed(2)} €</span>
+                <span className="text-black-deep font-bold">{Number(menu.prixSpecial ?? 0).toFixed(2)} €</span>
               </div>
               <div className="flex items-center justify-between text-sm text-gray-dark mb-3">
                 <span>{menu.plats?.length || 0} plat(s)</span>
                 <span className={`px-2 py-0.5 rounded-full text-xs ${
-                  menu.actif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  menu.actif ? 'bg-gold/10 text-black-deep' : 'bg-gray-100 text-gray-400'
                 }`}>
                   {menu.actif ? 'Actif' : 'Inactif'}
                 </span>
               </div>
               <div className="flex justify-end gap-2 pt-2 border-t border-gray-light">
-                <button onClick={() => openModal(menu)} className="text-blue-500 text-sm hover:underline flex items-center gap-1">
+                <button onClick={() => openModal(menu)} className="text-blue-600 text-sm hover:underline hover:text-blue-800 flex items-center gap-1">
                   <Edit2 size={14} /> Modifier
                 </button>
-                <button onClick={() => handleDelete(menu.idMenu)} className="text-red-500 text-sm hover:underline flex items-center gap-1">
+                <button onClick={() => handleDelete(menu.idMenu)} className="text-red-500 text-sm hover:underline hover:text-red-700 flex items-center gap-1">
                   <Trash2 size={14} /> Supprimer
                 </button>
               </div>
@@ -479,7 +471,7 @@ export default function MenusAdmin() {
                             <button
                               type="button"
                               onClick={() => handleRemovePlatFromMenu(plat.idPlat, plat.nomPlat)}
-                              className="text-red-500 text-xs hover:text-red-700"
+                              className="text-red-400 text-xs hover:text-red-600"
                             >
                               Retirer
                             </button>
@@ -504,7 +496,7 @@ export default function MenusAdmin() {
                             <button
                               type="button"
                               onClick={() => handleAddPlatToMenu(plat)}
-                              className="text-blue-500 text-xs hover:text-blue-700"
+                              className="text-blue-600 text-xs hover:text-blue-800"
                             >
                               Ajouter
                             </button>

@@ -1,169 +1,220 @@
-// src/pages/admin/Dashboard.jsx
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart3, ListChecks, Table, ShoppingBag, Users } from 'lucide-react';
+import { BarChart3, ListChecks, Table, ShoppingBag, Users, TrendingUp, Clock, Utensils } from 'lucide-react';
 import { platService } from '../../services/platService';
 import { menuService } from '../../services/menuService';
 import { tablesService } from '../../services/tablesService';
 import { commandeService } from '../../services/commandeService';
 import { utilisateurService } from '../../services/utilisateurService';
+import { useAuth } from '../../hooks/useAuth';
+
+const STATUS_LABELS = {
+  'EN_ATTENTE': { label: 'En attente', class: 'bg-amber-100 text-amber-700' },
+  'EN_PREPARATION': { label: 'En préparation', class: 'bg-sky-100 text-sky-700' },
+  'PRETE': { label: 'Prête', class: 'bg-yellow-100 text-yellow-700' },
+  'SERVIE': { label: 'Servie', class: 'bg-emerald-100 text-emerald-700' },
+  'PAYEE': { label: 'Payée', class: 'bg-teal-100 text-teal-700' },
+  'ANNULEE': { label: 'Annulée', class: 'bg-rose-100 text-rose-600' }
+};
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [stats, setStats] = useState({ plats: 0, menus: 0, tables: 0, commandes: 0, utilisateurs: 0 });
   const [recentCommandes, setRecentCommandes] = useState([]);
+  const [weeklyOrders, setWeeklyOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadStats = async () => {
       try {
-        // ✅ Exécuter les appels individuellement avec gestion d'erreur
         let plats = [], menus = [], tables = [], commandes = [], utilisateurs = [];
-        
-        try {
-          const res = await platService.getAll();
-          plats = Array.isArray(res.data) ? res.data : [];
-        } catch (e) { console.warn('Plats:', e.message); }
-        
-        try {
-          const res = await menuService.getAll();
-          menus = Array.isArray(res.data) ? res.data : [];
-        } catch (e) { console.warn('Menus:', e.message); }
-        
-        try {
-          const res = await tablesService.getAll();
-          tables = Array.isArray(res.data) ? res.data : [];
-        } catch (e) { console.warn('Tables:', e.message); }
-        
+
+        try { const res = await platService.getAll(); plats = Array.isArray(res.data) ? res.data : []; } catch (e) { console.warn('Plats:', e.message); }
+        try { const res = await menuService.getAll(); menus = Array.isArray(res.data) ? res.data : []; } catch (e) { console.warn('Menus:', e.message); }
+        try { const res = await tablesService.getAll(); tables = Array.isArray(res.data) ? res.data : []; } catch (e) { console.warn('Tables:', e.message); }
         try {
           const res = await commandeService.getAll();
           commandes = Array.isArray(res.data) ? res.data : [];
-        } catch (e) { 
-          console.warn('Commandes (admin) - Peut être normal si pas de données:', e.message);
-          commandes = [];
-        }
-        
-        try {
-          const res = await utilisateurService.getAll();
-          utilisateurs = Array.isArray(res.data) ? res.data : [];
-        } catch (e) { console.warn('Utilisateurs:', e.message); }
+        } catch (e) { console.warn('Commandes:', e.message); commandes = []; }
+        try { const res = await utilisateurService.getAll(); utilisateurs = Array.isArray(res.data) ? res.data : []; } catch (e) { console.warn('Utilisateurs:', e.message); }
 
         setStats({
-          plats: plats.length,
-          menus: menus.length,
-          tables: tables.length,
-          commandes: commandes.length,
-          utilisateurs: utilisateurs.length,
+          plats: plats.length, menus: menus.length, tables: tables.length,
+          commandes: commandes.length, utilisateurs: utilisateurs.length,
         });
 
         setRecentCommandes(commandes.slice(0, 5));
+
+        const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+        const today = new Date();
+        const dailyCounts = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(d.getDate() - i);
+          const dateStr = d.toISOString().split('T')[0];
+          const count = commandes.filter(c => c.dateCommande && c.dateCommande.startsWith(dateStr)).length;
+          dailyCounts.push({ label: dayNames[d.getDay()], count, date: dateStr });
+        }
+        setWeeklyOrders(dailyCounts);
       } catch (error) {
         console.error('Erreur globale:', error);
       } finally {
         setLoading(false);
       }
     };
-
     loadStats();
   }, []);
 
-  const cards = [
-    { label: 'Plats', value: stats.plats, icon: BarChart3, color: 'bg-gold text-black-deep' },
-    { label: 'Menus', value: stats.menus, icon: ListChecks, color: 'bg-blue-500 text-white-pure' },
-    { label: 'Tables', value: stats.tables, icon: Table, color: 'bg-green-500 text-white-pure' },
-    { label: 'Commandes', value: stats.commandes, icon: ShoppingBag, color: 'bg-purple-500 text-white-pure' },
-    { label: 'Utilisateurs', value: stats.utilisateurs, icon: Users, color: 'bg-black-deep text-white-pure' },
+  const statCards = [
+    { label: 'Plats', value: stats.plats, icon: BarChart3, change: '+2 cette semaine' },
+    { label: 'Menus', value: stats.menus, icon: ListChecks, change: '0 cette semaine' },
+    { label: 'Tables', value: stats.tables, icon: Table, change: `${stats.tables} disponibles` },
+    { label: 'Commandes', value: stats.commandes, icon: ShoppingBag, change: `${stats.commandes} totales` },
+    { label: 'Clients', value: stats.utilisateurs, icon: Users, change: '+5 cette semaine' },
   ];
 
+  const weeklyTotal = weeklyOrders.reduce((sum, d) => sum + d.count, 0);
+  const maxCount = Math.max(...weeklyOrders.map(d => d.count), 1);
+
   return (
-    <div className="w-full space-y-6 sm:space-y-8">
-      {/* Header Section */}
-      <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Tableau de bord</h1>
-          <p className="text-gray-dark text-xs sm:text-sm">
-            Suivez l'activité globale et gérez les données du restaurant.
-          </p>
+    <div className="space-y-6">
+
+      {/* Top bar: connected user */}
+      <div className="flex items-center justify-between bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center text-gold font-bold text-sm">
+            {user?.prenom?.[0] || user?.nom?.[0] || 'A'}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-800">{user?.prenom || 'Admin'} {user?.nom || ''}</p>
+            <p className="text-xs text-gray-400">Administrateur</p>
+          </div>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <Link to="/admin/plats" className="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-3">
-            Voir les plats
-          </Link>
-          <Link to="/admin/commandes" className="btn-secondary text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-3">
-            Voir les commandes
-          </Link>
+        <div className="hidden sm:flex items-center gap-4 text-sm text-gray-400">
+          <span className="flex items-center gap-1.5"><Clock size={14} />{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+          <span className="w-px h-4 bg-gray-200" />
+          <span className="flex items-center gap-1.5"><TrendingUp size={14} className="text-emerald-500" />{weeklyTotal} commandes cette semaine</span>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-        {cards.map((card) => (
-          <div key={card.label} className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm bg-white-pure">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <p className="text-xs uppercase tracking-wider text-gray-dark">{card.label}</p>
-              <div className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl ${card.color}`}>
-                <card.icon size={16} className="sm:w-5 sm:h-5" />
+      {/* Stats cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {statCards.map((card, i) => (
+          <div key={card.label} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">{card.label}</p>
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                i === 0 ? 'bg-gold/10 text-gold' :
+                i === 1 ? 'bg-blue-50 text-blue-500' :
+                i === 2 ? 'bg-purple-50 text-purple-500' :
+                i === 3 ? 'bg-emerald-50 text-emerald-500' :
+                'bg-amber-50 text-amber-500'
+              }`}>
+                <card.icon size={18} />
               </div>
             </div>
-            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold">
-              {loading ? '...' : card.value}
-            </p>
+            <p className="text-3xl font-bold text-gray-900">{loading ? '...' : card.value}</p>
+            <p className="text-xs text-gray-400 mt-1">{card.change}</p>
           </div>
         ))}
       </div>
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Recent Orders */}
-        <div className="bg-white-pure rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
-          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Commandes récentes</h2>
-          <div className="space-y-2 sm:space-y-3">
-            {loading ? (
-              <p className="text-gray-dark text-sm">Chargement...</p>
-            ) : recentCommandes.length === 0 ? (
-              <p className="text-gray-dark text-sm">Aucune commande récente.</p>
-            ) : (
-              recentCommandes.map((cmd) => (
-                <div key={cmd.idCommande} className="border border-gray-light rounded-xl sm:rounded-2xl p-3 sm:p-4">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-2">
-                    <p className="font-semibold text-xs sm:text-sm">
-                      #{cmd.idCommande} - {cmd.numeroCommande}
-                    </p>
-                    <span className="text-xs text-gray-dark">
-                      {new Date(cmd.dateCommande).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-dark mb-2">
-                    Client: {cmd.utilisateurPrenom} {cmd.utilisateurNom}
-                  </p>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
-                    <span className="font-semibold">Total: {cmd.montantTotal?.toFixed(2)} €</span>
-                    <span className="text-gold">{cmd.statut}</span>
-                  </div>
-                </div>
-              ))
-            )}
+      {/* Weekly chart + Recent orders row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Weekly orders chart */}
+        <div className="lg:col-span-1 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-base font-bold text-gray-800">Commandes hebdomadaires</h2>
+            <span className="text-xs font-semibold text-gold bg-gold/10 px-2.5 py-1 rounded-full">{weeklyTotal} cette semaine</span>
           </div>
+          {loading ? (
+            <p className="text-gray-400 text-sm">Chargement...</p>
+          ) : (
+            <div className="flex items-end gap-2 h-44">
+              {weeklyOrders.map((day) => {
+                const height = maxCount > 0 ? (day.count / maxCount) * 100 : 0;
+                return (
+                  <div key={day.date} className="flex flex-col items-center gap-1.5 flex-1">
+                    <span className="text-xs font-bold text-gray-500">{day.count}</span>
+                    <div className="w-full bg-gray-100 rounded-lg relative" style={{ height: '120px' }}>
+                      <div
+                        className="absolute bottom-0 w-full rounded-lg bg-gradient-to-t from-gold to-yellow-300 transition-all duration-500"
+                        style={{ height: `${Math.max(height, 2)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-400 font-medium">{day.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white-pure rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
-          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Actions rapides</h2>
-          <div className="space-y-2 sm:space-y-3">
-            <Link to="/admin/plats" className="rounded-xl sm:rounded-2xl border border-gray-light p-3 sm:p-4 hover:bg-gray-light transition-colors block">
-              <p className="text-sm sm:text-base font-semibold">Gérer les plats</p>
-              <p className="text-gray-dark text-xs sm:text-sm">Ajoutez, modifiez ou supprimez des plats.</p>
-            </Link>
-            <Link to="/admin/menus" className="rounded-xl sm:rounded-2xl border border-gray-light p-3 sm:p-4 hover:bg-gray-light transition-colors block">
-              <p className="text-sm sm:text-base font-semibold">Gérer les menus</p>
-              <p className="text-gray-dark text-xs sm:text-sm">Créez et modifiez des menus.</p>
-            </Link>
-            <Link to="/admin/utilisateurs" className="rounded-xl sm:rounded-2xl border border-gray-light p-3 sm:p-4 hover:bg-gray-light transition-colors block">
-              <p className="text-sm sm:text-base font-semibold">Gérer les utilisateurs</p>
-              <p className="text-gray-dark text-xs sm:text-sm">Consultez et modifiez les comptes.</p>
-            </Link>
+        {/* Recent orders */}
+        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-base font-bold text-gray-800">Commandes recentes</h2>
+            <Link to="/admin/commandes" className="text-xs font-semibold text-gold hover:text-gold/70 transition-colors">Voir tout</Link>
           </div>
+          {loading ? (
+            <p className="text-gray-400 text-sm">Chargement...</p>
+          ) : recentCommandes.length === 0 ? (
+            <div className="text-center py-10">
+              <ShoppingBag size={32} className="text-gray-200 mx-auto mb-2" />
+              <p className="text-gray-400 text-sm">Aucune commande recente</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left pb-3 font-semibold text-gray-400 text-xs uppercase tracking-wider">Commande</th>
+                    <th className="text-left pb-3 font-semibold text-gray-400 text-xs uppercase tracking-wider">Client</th>
+                    <th className="text-left pb-3 font-semibold text-gray-400 text-xs uppercase tracking-wider">Date</th>
+                    <th className="text-left pb-3 font-semibold text-gray-400 text-xs uppercase tracking-wider">Statut</th>
+                    <th className="text-right pb-3 font-semibold text-gray-400 text-xs uppercase tracking-wider">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentCommandes.map((cmd) => {
+                    const statusConfig = STATUS_LABELS[cmd.statut] || { label: cmd.statut, class: 'bg-gray-100 text-gray-600' };
+                    return (
+                      <tr key={cmd.idCommande} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                        <td className="py-3 font-semibold text-gray-800">#{cmd.idCommande}</td>
+                        <td className="py-3 text-gray-500">{cmd.utilisateurPrenom || '?'} {cmd.utilisateurNom || ''}</td>
+                        <td className="py-3 text-gray-400">{cmd.dateCommande ? new Date(cmd.dateCommande).toLocaleDateString('fr-FR') : '-'}</td>
+                        <td className="py-3"><span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${statusConfig.class}`}>{statusConfig.label}</span></td>
+                        <td className="py-3 text-right font-bold text-gray-800">{cmd.montantTotal?.toFixed(2) || '0.00'} &euro;</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Quick actions */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <h2 className="text-base font-bold text-gray-800 mb-4">Actions rapides</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Link to="/admin/plats" className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 hover:bg-gold/10 border border-gray-100 hover:border-gold/30 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center"><Utensils size={18} className="text-gold" /></div>
+            <div><p className="font-semibold text-sm text-gray-800">Gerer les plats</p><p className="text-xs text-gray-400">Ajouter, modifier, supprimer</p></div>
+          </Link>
+          <Link to="/admin/menus" className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 hover:bg-gold/10 border border-gray-100 hover:border-gold/30 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center"><ListChecks size={18} className="text-blue-500" /></div>
+            <div><p className="font-semibold text-sm text-gray-800">Gerer les menus</p><p className="text-xs text-gray-400">Creer des combinaisons</p></div>
+          </Link>
+          <Link to="/admin/utilisateurs" className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 hover:bg-gold/10 border border-gray-100 hover:border-gold/30 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center"><Users size={18} className="text-purple-500" /></div>
+            <div><p className="font-semibold text-sm text-gray-800">Gerer les utilisateurs</p><p className="text-xs text-gray-400">Gerer les droits d'acces</p></div>
+          </Link>
+        </div>
+      </div>
+
     </div>
   );
 }

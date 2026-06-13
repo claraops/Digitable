@@ -147,7 +147,7 @@ export default function Cart() {
         toast.info(t('cart.stripeComing'));
       }
       
-      navigate('/commandes');
+      navigate('/mes-commandes');
     } catch (error) {
       console.error('Erreur commande:', error);
       toast.error(error.response?.data?.message || t('cart.orderError'));
@@ -167,7 +167,7 @@ export default function Cart() {
             </div>
             <h2 className="text-2xl font-bold mb-2">{t('cart.empty')}</h2>
             <p className="text-gray-500 mb-6">{t('cart.emptyDesc')}</p>
-            <Link to="/menu" className="inline-flex items-center gap-2 bg-gold hover:bg-gold/90 text-black-deep px-6 py-3 rounded-xl font-semibold">
+            <Link to="/menu" className="inline-flex items-center gap-2 bg-black-deep text-white px-6 py-3 rounded-xl font-semibold">
               {t('cart.discoverMenu')}
             </Link>
           </div>
@@ -206,20 +206,20 @@ export default function Cart() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => updateItemQuantity(item.idPlat, (item.quantite || 1) - 1)}
-                          className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gold transition-colors"
+                          className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-300 transition-colors"
                         >
                           <Minus size={14} />
                         </button>
                         <span className="font-semibold w-8 text-center">{item.quantite || 1}</span>
                         <button
                           onClick={() => updateItemQuantity(item.idPlat, (item.quantite || 1) + 1)}
-                          className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gold transition-colors"
+                          className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-300 transition-colors"
                         >
                           <Plus size={14} />
                         </button>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-gold">{(item.prix * (item.quantite || 1)).toFixed(2)} €</p>
+                        <p className="font-bold text-black-deep">{(item.prix * (item.quantite || 1)).toFixed(2)} €</p>
                           <button onClick={() => removeFromCart(item.idPlat)} className="text-red-500 text-xs hover:text-red-700 mt-1">
                             {t('cart.remove')}
                           </button>
@@ -252,7 +252,7 @@ export default function Cart() {
                 <div className="border-t border-gray-100 pt-3 mt-2">
                   <div className="flex justify-between">
                     <span className="font-bold">{t('common.total')}</span>
-                    <span className="text-gold font-bold text-xl">{total.toFixed(2)} €</span>
+                    <span className="text-black-deep font-bold text-xl">{total.toFixed(2)} €</span>
                   </div>
                 </div>
               </div>
@@ -260,7 +260,7 @@ export default function Cart() {
               {tableInfo && (
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-2 text-sm">
-                    <Truck size={14} className="text-gold" />
+                    <Truck size={14} className="text-gray-600" />
                     <span className="text-gray-600">{t('cart.selectedTable')}:</span>
                     <span className="font-medium">{t('tables.number')} {tableInfo.numeroTable}</span>
                   </div>
@@ -269,13 +269,13 @@ export default function Cart() {
 
               <button
                 onClick={handleProceedToPayment}
-                className="w-full mt-5 bg-gold hover:bg-gold/90 text-black-deep py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
+                className="w-full mt-5 bg-black-deep hover:bg-gray-800 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
               >
                 <CreditCard size={18} />
                 {t('cart.proceedToPayment')}
               </button>
               
-              <Link to="/menu" className="w-full mt-3 block text-center text-gray-500 text-sm hover:text-gold">
+              <Link to="/menu" className="w-full mt-3 block text-center text-gray-500 text-sm hover:text-gray-700">
                 ← {t('cart.addMoreItems')}
               </Link>
             </div>
@@ -288,8 +288,8 @@ export default function Cart() {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <div className="text-center mb-5">
-              <div className="w-14 h-14 bg-gold/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                <CreditCard className="w-7 h-7 text-gold" />
+              <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <CreditCard className="w-7 h-7 text-gray-600" />
               </div>
               <h2 className="text-xl font-bold">{t('cart.paymentMethod')}</h2>
               <p className="text-gray-500 text-sm">{t('cart.choosePayment')}</p>
@@ -299,27 +299,27 @@ export default function Cart() {
               <button
                 onClick={() => setPaymentMethod('CB')}
                 className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
-                  paymentMethod === 'CB' ? 'border-gold bg-gold/5' : 'border-gray-200'
+                  paymentMethod === 'CB' ? 'border-gray-800 bg-gray-50' : 'border-gray-200'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <CreditCard size={20} className="text-gold" />
+                  <CreditCard size={20} className="text-gray-600" />
                   <span className="font-medium">{t('cart.card')}</span>
                 </div>
-                {paymentMethod === 'CB' && <CheckCircle size={20} className="text-gold" />}
+                {paymentMethod === 'CB' && <CheckCircle size={20} className="text-gray-800" />}
               </button>
               
               <button
                 onClick={() => setPaymentMethod('ESPECES')}
                 className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
-                  paymentMethod === 'ESPECES' ? 'border-gold bg-gold/5' : 'border-gray-200'
+                  paymentMethod === 'ESPECES' ? 'border-gray-800 bg-gray-50' : 'border-gray-200'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Banknote size={20} className="text-gold" />
+                  <Banknote size={20} className="text-gray-600" />
                   <span className="font-medium">{t('cart.cash')}</span>
                 </div>
-                {paymentMethod === 'ESPECES' && <CheckCircle size={20} className="text-gold" />}
+                {paymentMethod === 'ESPECES' && <CheckCircle size={20} className="text-gray-800" />}
               </button>
             </div>
             
@@ -327,7 +327,7 @@ export default function Cart() {
               <button
                 onClick={handleCheckout}
                 disabled={!paymentMethod || loading}
-                className="flex-1 bg-gold hover:bg-gold/90 text-black-deep py-2.5 rounded-xl font-semibold disabled:opacity-50"
+                className="flex-1 bg-black-deep hover:bg-gray-800 text-white py-2.5 rounded-xl font-semibold disabled:opacity-50"
               >
                 {loading ? t('cart.orderInProgress') : t('cart.confirmOrder')}
               </button>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, startTransition } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Phone, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -108,7 +108,7 @@ export default function Auth() {
                changeLanguage(response.data.user?.langue || formData.langue);
                
                toast.success('Connexion réussie !');
-              navigate('/');
+               setTimeout(() => startTransition(() => navigate('/')), 300);
         }
       } else {
         // Inscription
@@ -134,7 +134,7 @@ export default function Auth() {
           changeLanguage(formData.langue);
           toast.success('Inscription réussie !', { id: toastId });
           
-          setTimeout(() => navigate('/'), 500);
+          setTimeout(() => startTransition(() => navigate('/')), 500);
         }
       }
     } catch (error) {
@@ -279,6 +279,7 @@ export default function Auth() {
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  autoComplete={isLogin ? 'current-password' : 'new-password'}
                   className="input pl-9 sm:pl-10 pr-10 text-sm"
                   placeholder="••••••••"
                 />
@@ -329,7 +330,7 @@ export default function Auth() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full py-2.5 sm:py-3 flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 sm:py-3 bg-gold text-black-deep rounded-lg font-semibold hover:bg-gold/80 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

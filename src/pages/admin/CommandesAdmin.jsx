@@ -37,12 +37,12 @@ export default function CommandesAdmin() {
 
   const getStatusColor = (statut) => {
     const colors = {
-      'EN_ATTENTE': 'bg-yellow-500',
-      'EN_PREPARATION': 'bg-blue-500',
+      'EN_ATTENTE': 'bg-gray-500',
+      'EN_PREPARATION': 'bg-gray-700',
       'PRETE': 'bg-gold',
-      'SERVIE': 'bg-green-500',
-      'PAYEE': 'bg-purple-500',
-      'ANNULEE': 'bg-red-500'
+      'SERVIE': 'bg-black-deep',
+      'PAYEE': 'bg-gray-800',
+      'ANNULEE': 'bg-gray-400'
     };
     return colors[statut] || 'bg-gray-500';
   };
@@ -55,16 +55,8 @@ export default function CommandesAdmin() {
 
   return (
     <div>
-      <div className="bg-gray-light rounded-3xl p-6 mb-8 shadow-sm border border-gray-light">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-gray-dark mb-2 flex items-center gap-2">
-              🛒 Gérer les commandes
-            </p>
-            <h1 className="text-3xl font-bold">Gestion des Commandes</h1>
-            <p className="text-gray-dark mt-2">Suivez et gérez les commandes des clients.</p>
-          </div>
-        </div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold">Gestion des Commandes</h1>
       </div>
 
       {/* Filters */}
@@ -74,7 +66,7 @@ export default function CommandesAdmin() {
             key={f}
             onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              filter === f ? 'bg-black-deep text-white' : 'bg-gray-light text-gray-dark hover:bg-gray-light/80'
+              filter === f ? 'bg-black-deep text-white' : 'bg-gray-light text-gray-dark hover:bg-gold/10'
             }`}
           >
             {f === 'TOUS' ? 'Toutes' : f}
@@ -87,13 +79,13 @@ export default function CommandesAdmin() {
         <table className="w-full">
           <thead className="bg-gray-light">
             <tr>
-              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">ID</th>
-              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Date</th>
-              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Client</th>
-              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Table</th>
-              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Total</th>
-              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Statut</th>
-              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Actions</th>
+              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">ID</th>
+              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Date</th>
+              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Client</th>
+              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Table</th>
+              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Total</th>
+              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark">Statut</th>
+              <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -103,7 +95,7 @@ export default function CommandesAdmin() {
                 <td className="px-3 py-3 text-sm text-gray-dark whitespace-nowrap">{new Date(cmd.dateCommande).toLocaleDateString()}</td>
                 <td className="px-3 py-3 text-sm">{cmd.utilisateurPrenom || ''} {cmd.utilisateurNom || ''}</td>
                 <td className="px-3 py-3 text-sm">Table {cmd.numeroTable || cmd.idTable}</td>
-                <td className="px-3 py-3 font-semibold text-gold text-sm whitespace-nowrap">{(cmd.montantTotal ?? cmd.total)?.toFixed(2)} €</td>
+                <td className="px-3 py-3 font-semibold text-black-deep text-sm whitespace-nowrap">{(cmd.montantTotal ?? cmd.total)?.toFixed(2)} €</td>
                 <td className="px-3 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs text-white ${getStatusColor(cmd.statut)}`}>
                     {cmd.statut}
@@ -111,16 +103,16 @@ export default function CommandesAdmin() {
                 </td>
                 <td className="px-3 py-3">
                   <div className="flex gap-2">
-                    <button onClick={() => setSelectedCommande(cmd)} className="text-blue-500 hover:text-blue-700 transition-colors" title="Détails">
+                    <button onClick={() => setSelectedCommande(cmd)} className="text-blue-600 hover:text-blue-800 transition-colors" title="Détails">
                       <Eye size={18} />
                     </button>
                     {cmd.statut === 'EN_ATTENTE' && (
-                      <button onClick={() => updateStatut(cmd.idCommande, 'EN_PREPARATION')} className="text-blue-500 hover:text-blue-700 transition-colors" title="Passer en préparation">
+                      <button onClick={() => updateStatut(cmd.idCommande, 'EN_PREPARATION')} className="text-blue-600 hover:text-blue-800 transition-colors" title="Passer en préparation">
                         <Clock size={18} />
                       </button>
                     )}
                     {cmd.statut === 'EN_PREPARATION' && (
-                      <button onClick={() => updateStatut(cmd.idCommande, 'PRETE')} className="text-gold hover:text-gold transition-colors" title="Marquer prête">
+                      <button onClick={() => updateStatut(cmd.idCommande, 'PRETE')} className="text-black-deep hover:text-black-deep transition-colors" title="Marquer prête">
                         <CheckCircle size={18} />
                       </button>
                     )}
@@ -157,18 +149,18 @@ export default function CommandesAdmin() {
                 <p>Table {cmd.numeroTable || cmd.idTable} · {new Date(cmd.dateCommande).toLocaleString()}</p>
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-gray-light">
-                <span className="font-bold text-gold">{(cmd.montantTotal ?? cmd.total)?.toFixed(2)} €</span>
+                <span className="font-bold text-black-deep">{(cmd.montantTotal ?? cmd.total)?.toFixed(2)} €</span>
                 <div className="flex gap-2">
-                  <button onClick={() => setSelectedCommande(cmd)} className="text-blue-500 text-sm hover:underline">
+                  <button onClick={() => setSelectedCommande(cmd)} className="text-blue-600 text-sm hover:underline hover:text-blue-800">
                     Détails
                   </button>
                   {cmd.statut === 'EN_ATTENTE' && (
-                    <button onClick={() => updateStatut(cmd.idCommande, 'EN_PREPARATION')} className="text-blue-500 text-sm hover:underline">
+                    <button onClick={() => updateStatut(cmd.idCommande, 'EN_PREPARATION')} className="text-blue-600 text-sm hover:underline hover:text-blue-800">
                       Préparer
                     </button>
                   )}
                   {cmd.statut === 'EN_PREPARATION' && (
-                    <button onClick={() => updateStatut(cmd.idCommande, 'PRETE')} className="text-gold text-sm hover:underline">
+                    <button onClick={() => updateStatut(cmd.idCommande, 'PRETE')} className="text-black-deep text-sm hover:underline">
                       Prête
                     </button>
                   )}
@@ -197,14 +189,14 @@ export default function CommandesAdmin() {
               {selectedCommande.platsCommandes?.map((plat, idx) => (
                 <div key={idx} className="flex justify-between border-b border-gray-light py-2">
                   <span>{plat.platNom} x{plat.quantite}</span>
-                  <span className="text-gold">{(plat.prixUnitaire * plat.quantite).toFixed(2)} €</span>
+                  <span className="text-black-deep">{(plat.prixUnitaire * plat.quantite).toFixed(2)} €</span>
                 </div>
               ))}
             </div>
 
             <div className="flex justify-between pt-3 border-t border-gray-light">
               <span className="font-bold">Total</span>
-              <span className="text-xl font-bold text-gold">{selectedCommande.montantTotal} €</span>
+              <span className="text-xl font-bold text-black-deep">{selectedCommande.montantTotal} €</span>
             </div>
 
             <button onClick={() => setSelectedCommande(null)} className="btn-primary w-full mt-4">

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight, Star, X } from 'lucide-react';
 import { menuService } from '../services/menuService';
 import { avisService } from '../services/avisService';
 import { commandeService } from '../services/commandeService';
 import { getImageUrl } from '../utils/imageUtils';
 import { useTranslation } from '../i18n/I18nContext';
+import MenuDetailModal from './MenuDetail';
 import PPImage from '../assets/pp-canva.png';
 import petitPlat from '../assets/ptit-plat.avif';
 import petitEntre from '../assets/petit-entre.avif';
@@ -17,18 +18,28 @@ export default function Home() {
   const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(true);
   const [menuNotes, setMenuNotes] = useState({});
+  const [menuReviewsCount, setMenuReviewsCount] = useState({});
+  const [selectedMenu, setSelectedMenu] = useState(null);
 
   const renderStars = (rating) => {
     const stars = [];
-    const numStars = Math.round(parseFloat(rating) || 0);
+    const numRating = parseFloat(rating) || 0;
     for (let i = 1; i <= 5; i++) {
-      stars.push(
-        <Star 
-          key={i} 
-          size={14} 
-          className={i <= numStars ? 'fill-gold text-gold' : 'text-gray-300 fill-gray-300'}
-        />
-      );
+      const fill = Math.min(1, Math.max(0, numRating - (i - 1)));
+      if (fill >= 1) {
+        stars.push(<Star key={i} size={14} className="fill-gold text-gold" />);
+      } else if (fill > 0) {
+        stars.push(
+          <span key={i} className="relative inline-block">
+            <Star size={14} className="text-gray-300 fill-gray-300" />
+            <span className="absolute inset-0 overflow-hidden" style={{ width: `${fill * 100}%` }}>
+              <Star size={14} className="fill-gold text-gold" />
+            </span>
+          </span>
+        );
+      } else {
+        stars.push(<Star key={i} size={14} className="text-gray-300 fill-gray-300" />);
+      }
     }
     return stars;
   };
@@ -55,44 +66,54 @@ export default function Home() {
           ]);
 
           if (Array.isArray(avisRes.data) && Array.isArray(commandesRes.data)) {
+            console.log('Home - Avis brut (1er):', avisRes.data[0]);
+            console.log('Home - Commande brut (1er):', commandesRes.data[0]);
+
+            // Map each commande to its plat IDs
+            const getCmdId = (c) => c.idCommande || c.id || c.idCommand || c._ID_COMMANDE;
             const commandeToPlats = {};
             commandesRes.data.forEach(cmd => {
               if (cmd.platsCommandes) {
                 cmd.platsCommandes.forEach(p => {
                   const pid = p.platId || p.idPlat;
                   if (pid) {
-                    if (!commandeToPlats[cmd.idCommande]) commandeToPlats[cmd.idCommande] = [];
-                    if (!commandeToPlats[cmd.idCommande].includes(pid)) commandeToPlats[cmd.idCommande].push(pid);
+                    const cid = getCmdId(cmd);
+                    if (!commandeToPlats[cid]) commandeToPlats[cid] = [];
+                    if (!commandeToPlats[cid].includes(pid)) commandeToPlats[cid].push(pid);
                   }
                 });
               }
             });
 
-            const notesMap = {}, countMap = {};
+            // Map each menu to its plat IDs
+            const menuPlatsMap = {};
+            menusData.forEach(menu => {
+              menuPlatsMap[menu.idMenu] = (menu.plats || []).map(p => p.idPlat || p.platId).filter(Boolean);
+            });
+
+            // Aggregate reviews at menu level: for each avis, find which menus the commande's plats belong to
+            const menuNoteSum = {}, menuCount = {};
             avisRes.data.forEach(avis => {
-              const cmdId = avis.commande?.idCommande || avis._ID_COMMANDE;
-              const platIds = commandeToPlats[cmdId] || [];
-              const note = parseInt(avis.note) || 0;
-              platIds.forEach(pid => {
-                notesMap[pid] = (notesMap[pid] || 0) + note;
-                countMap[pid] = (countMap[pid] || 0) + 1;
+              const cmdId = avis.commandeId || avis.idCommande || avis._ID_COMMANDE || avis.commande?.idCommande;
+              const commandePlatIds = commandeToPlats[cmdId] || [];
+              if (commandePlatIds.length === 0) return;
+              const note = parseFloat(avis.note) || 0;
+              Object.keys(menuPlatsMap).forEach(menuId => {
+                const menuPlatIds = menuPlatsMap[menuId];
+                if (menuPlatIds.some(id => commandePlatIds.includes(id))) {
+                  menuNoteSum[menuId] = (menuNoteSum[menuId] || 0) + note;
+                  menuCount[menuId] = (menuCount[menuId] || 0) + 1;
+                }
               });
             });
 
-            const avgMap = {};
-            Object.keys(notesMap).forEach(pid => { avgMap[pid] = notesMap[pid] / countMap[pid]; });
-
-            // Moyenne par menu
-            const menuNotesMap = {};
-            menusData.forEach(menu => {
-              if (menu.plats && Array.isArray(menu.plats)) {
-                const notes = menu.plats.map(p => avgMap[p.idPlat]).filter(n => n);
-                menuNotesMap[menu.idMenu] = notes.length > 0
-                  ? (notes.reduce((a, b) => a + b, 0) / notes.length).toFixed(1)
-                  : 0;
-              }
+            const menuNotesMap = {}, menuRevCountMap = {};
+            Object.keys(menuNoteSum).forEach(menuId => {
+              menuNotesMap[menuId] = parseFloat((menuNoteSum[menuId] / menuCount[menuId]).toFixed(2));
+              menuRevCountMap[menuId] = menuCount[menuId];
             });
             setMenuNotes(menuNotesMap);
+            setMenuReviewsCount(menuRevCountMap);
           }
         } catch (e) {
           console.warn('Erreur chargement avis:', e);
@@ -135,8 +156,8 @@ export default function Home() {
               </div>
             </div>
             <div className="lg:col-span-5">
-              <div className="relative rounded-[2rem] overflow-hidden shadow-lg min-h-[280px] sm:min-h-[360px] bg-transparent">
-                <img src={PPImage} alt="PP" className="h-full w-full object-cover object-center" />
+              <div className="relative rounded-[2rem] overflow-hidden shadow-lg aspect-[4/3] sm:aspect-auto sm:h-[360px] bg-transparent">
+                <img src={PPImage} alt="PP" className="absolute inset-0 w-full h-full object-cover object-center" />
               </div>
             </div>
           </div>
@@ -207,10 +228,15 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {menus.map((menu) => (
+              {(() => {
+                const sorted = [...menus].sort((a, b) => new Date(b.dateCreation || 0) - new Date(a.dateCreation || 0));
+                const newestIds = new Set(sorted.slice(0, 2).map(m => m.idMenu));
+                return menus.map((menu) => {
+                  const isNew = newestIds.has(menu.idMenu);
+                  return (
                 <div 
                   key={menu.idMenu} 
-                  className="group bg-white-pure rounded-xl shadow-md overflow-hidden border border-gray-light hover:shadow-lg transition-all duration-300"
+                  className="group bg-white rounded-2xl shadow-md overflow-hidden border-2 border-black-deep/10 hover:shadow-lg transition-all duration-300"
                 >
                   <div className="relative h-48 overflow-hidden">
                     <img 
@@ -219,39 +245,50 @@ export default function Home() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       onError={(e) => { e.target.src = 'https://placehold.co/400x300/e2e8f0/64748b?text=Image+non+disponible'; }}
                     />
-                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                      <div className="flex items-center gap-0.5">{renderStars(menuNotes[menu.idMenu])}</div>
-                      <span className="text-xs text-gray-600 ml-1">{menuNotes[menu.idMenu] || '0'}</span>
-                    </div>
+                    {isNew && (
+                      <div className="absolute top-3 right-3 bg-gold text-black-deep px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                        Nouveau
+                      </div>
+                    )}
                   </div>
                   <div className="p-5">
                     <h3 className="text-xl font-bold mb-2">{menu.nomMenu}</h3>
                     <p className="text-gray-dark text-sm mb-4 line-clamp-2">{menu.descriptionMenu || menu.description}</p>
                     
+                    {menuNotes[menu.idMenu] > 0 && (
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="flex items-center gap-0.5">{renderStars(menuNotes[menu.idMenu])}</div>
+                        <span className="text-xs text-gray-500">({menuReviewsCount[menu.idMenu] || 0} avis)</span>
+                        <span className="text-xs text-gold font-semibold">{menuNotes[menu.idMenu]}</span>
+                      </div>
+                    )}
+                    
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="text-2xl font-bold text-gold">
+                        <span className="text-2xl font-bold text-black-deep">
                           {Number(menu.prixSpecial || menu.prix || 0).toFixed(2)} €
                         </span>
                         <p className="text-xs text-gray-dark mt-1">{menu.plats?.length || 0} plat(s) inclus</p>
                       </div>
-                        <Link 
-                          to={`/menu?menu=${menu.idMenu}`} 
+                        <button
+                          onClick={() => setSelectedMenu(menu)}
                           className="btn-secondary text-sm py-2 px-4"
                         >
                           {t('menu.discover')}
-                        </Link>
+                        </button>
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+            });
+          })()}
             </div>
           )}
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="w-full bg-gold text-black-deep py-12">
+      <section className="w-full bg-gold text-black-deep py-16 border-t border-black-deep/10">
         <div className="container-responsive text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-3">{t('home.ready')}</h2>
           <p className="text-sm sm:text-base mb-6 text-black-deep/70">
@@ -263,6 +300,27 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      {/* Modal overlay pour le détail menu */}
+      {selectedMenu && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 backdrop-blur-sm py-6"
+          onClick={() => setSelectedMenu(null)}
+        >
+          <div
+            className="relative w-full max-w-6xl mx-4 my-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setSelectedMenu(null)}
+              className="absolute -top-2 -right-2 z-10 bg-white rounded-full p-1.5 shadow-md hover:bg-gray-100 transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <MenuDetailModal menu={selectedMenu} onBack={() => setSelectedMenu(null)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

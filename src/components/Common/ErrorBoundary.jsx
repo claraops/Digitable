@@ -3,15 +3,15 @@ import React from 'react';
 export class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
+  static getDerivedStateFromError() {
+    return { hasError: true };
   }
 
-  componentDidCatch(error, errorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  componentDidCatch(error) {
+    console.error('ErrorBoundary caught:', error);
   }
 
   render() {
@@ -19,18 +19,20 @@ export class ErrorBoundary extends React.Component {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
           <div className="bg-white rounded-3xl shadow-lg p-8 max-w-xl text-center">
-            <h1 className="text-2xl font-bold mb-4">Une erreur est survenue</h1>
-            <p className="text-gray-700 mb-4">
-              L'application a rencontré un problème. Rechargez la page ou vérifiez la console.
+            <h1 className="text-xl font-bold mb-3">Une erreur est survenue</h1>
+            <p className="text-gray-600 mb-6 text-sm">
+              Veuillez recharger la page pour continuer.
             </p>
-            <details className="text-left text-sm text-gray-500 whitespace-pre-wrap">
-              {this.state.error?.toString()}
-            </details>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-black-deep text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800"
+            >
+              Recharger la page
+            </button>
           </div>
         </div>
       );
     }
-
     return this.props.children;
   }
 }

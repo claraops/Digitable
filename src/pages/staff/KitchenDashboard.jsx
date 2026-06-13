@@ -168,7 +168,7 @@ export default function KitchenDashboard() {
                           onClick={() => updateStatut(cmd.idCommande, statusConfig[col.status].nextStatus)} 
                           className="w-full mt-3 bg-gold hover:bg-gold/90 text-black py-1.5 rounded-lg text-sm font-medium transition-all"
                         >
-                          {statusConfig[col.status].nextLabel} →
+                          {statusConfig[col.status].nextLabel} {'>'}
                         </button>
                       )}
                       
