@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { Search, ArrowLeft, Star } from 'lucide-react';
+import { Search, ArrowLeft, Star, X } from 'lucide-react';
 import { platService } from '../services/platService';
 import { menuService } from '../services/menuService';
 import { avisService } from '../services/avisService';
@@ -26,6 +26,8 @@ export default function Menu() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [avisData, setAvisData] = useState({});
+  const [menuRatings, setMenuRatings] = useState({});
+  const [menuReviewsCount, setMenuReviewsCount] = useState({});
 
   const categories = [t('menu.allCategories'), t('menu.starters'), t('menu.mainCourses'), t('menu.desserts'), t('menu.beverages')];
   const categoryMap = {
@@ -77,19 +79,21 @@ try {
       const commandesResponse = await commandeService.getAll();
       const allCommandes = commandesResponse.data || [];
       
+      console.log('Menu - Avis brut (1er):', avisRes.data[0]);
+      console.log('Menu - Commande brut (1er):', allCommandes[0]);
+
+      const getCmdId = (c) => c.idCommande || c.id || c.idCommand || c._ID_COMMANDE;
+
       // Créer un mapping commandeId -> platIds
       const commandeToPlats = {};
       allCommandes.forEach(cmd => {
         if (cmd.platsCommandes) {
           cmd.platsCommandes.forEach(plat => {
-            const platId = plat.platId;
+            const platId = plat.platId || plat.idPlat;
             if (platId) {
-              if (!commandeToPlats[cmd.idCommande]) {
-                commandeToPlats[cmd.idCommande] = [];
-              }
-              if (!commandeToPlats[cmd.idCommande].includes(platId)) {
-                commandeToPlats[cmd.idCommande].push(platId);
-              }
+              const cid = getCmdId(cmd);
+              if (!commandeToPlats[cid]) commandeToPlats[cid] = [];
+              if (!commandeToPlats[cid].includes(platId)) commandeToPlats[cid].push(platId);
             }
           });
         }
@@ -100,7 +104,7 @@ try {
       const countMap = {};
       
       avisRes.data.forEach(avis => {
-        const commandeId = avis.commandeId || avis.commande?.idCommande || avis._ID_COMMANDE;
+        const commandeId = avis.commandeId || avis.idCommande || avis._ID_COMMANDE || avis.commande?.idCommande;
         const platIds = commandeToPlats[commandeId] || [];
         const note = parseInt(avis.note) || 0;
         
@@ -112,9 +116,41 @@ try {
       
       const avgMap = {};
       Object.keys(notesMap).forEach(platId => {
-        avgMap[platId] = notesMap[platId] / countMap[platId];
+        avgMap[platId] = parseFloat((notesMap[platId] / countMap[platId]).toFixed(2));
       });
       setAvisData(avgMap);
+
+      // Calcul de la note moyenne globale par menu
+      const menuNoteMap = {};
+      const menuCountMap = {};
+      const menuPlatsMap = {};
+      menusData.forEach(menu => {
+        menuPlatsMap[menu.idMenu] = (menu.plats || []).map(p => p.idPlat || p.platId).filter(Boolean);
+      });
+      allCommandes.forEach(cmd => {
+        const commandePlatIds = (cmd.platsCommandes || []).map(p => p.platId || p.idPlat).filter(Boolean);
+        const avisItem = avisRes.data.find(avis => {
+          const cmdId = avis.commandeId || avis.idCommande || avis._ID_COMMANDE || avis.commande?.idCommande;
+          return cmdId === getCmdId(cmd);
+        });
+        if (!avisItem) return;
+        const note = parseFloat(avisItem.note) || 0;
+        Object.keys(menuPlatsMap).forEach(menuId => {
+          const menuPlatIds = menuPlatsMap[menuId];
+          const hasCommon = menuPlatIds.some(id => commandePlatIds.includes(id));
+          if (hasCommon) {
+            menuNoteMap[menuId] = (menuNoteMap[menuId] || 0) + note;
+            menuCountMap[menuId] = (menuCountMap[menuId] || 0) + 1;
+          }
+        });
+      });
+      const menuAvgMap = {}, menuRevCountMap = {};
+      Object.keys(menuNoteMap).forEach(menuId => {
+        menuAvgMap[menuId] = parseFloat((menuNoteMap[menuId] / menuCountMap[menuId]).toFixed(2));
+        menuRevCountMap[menuId] = menuCountMap[menuId];
+      });
+      setMenuRatings(menuAvgMap);
+      setMenuReviewsCount(menuRevCountMap);
     }
   }
 } catch (e) {
@@ -139,10 +175,7 @@ try {
     fetchData();
   }, [menuIdParam]);
 
-  // ✅ VUE DÉTAIL MENU - À mettre AVANT le return principal
-  if (selectedMenu) {
-    return <MenuDetail menu={selectedMenu} onBack={() => setSelectedMenu(null)} />;
-  }
+  // ✅ VUE DÉTAIL MENU - modal overlay
 
   // Fonction pour afficher les étoiles avec remplissage partiel
   const renderStars = (rating) => {
@@ -190,7 +223,7 @@ try {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-500 mb-4">{error}</p>
-            <button onClick={() => window.location.reload()} className="bg-gold text-white px-6 py-2 rounded-lg">
+            <button onClick={() => window.location.reload()} className="bg-black-deep text-white px-6 py-2 rounded-lg">
               {t('common.retry')}
             </button>
         </div>
@@ -233,7 +266,7 @@ try {
               onClick={() => setCategory(c)}
               className={`px-5 py-2 rounded-full transition-all text-sm font-medium ${
                 category === c 
-                    ? 'bg-black-deep text-white' 
+                    ? 'bg-gold text-black-deep' 
                     : 'bg-white text-gray-600 border border-gray-300 hover:border-gray-400 hover:text-gray-900'
               }`}
             >
@@ -263,7 +296,7 @@ try {
             }, {})
           ).map(([catKey, catPlats]) => (
             <div key={catKey} className="mb-12">
-              <h2 className="text-2xl font-bold mb-6 pb-2 border-b-2 border-gold inline-block">
+              <h2 className="text-2xl font-bold mb-6 pb-2 border-b-2 border-gray-300 inline-block">
                 {categoryLabels[catKey] || catKey}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -272,7 +305,7 @@ try {
                   return (
                     <div 
                       key={plat.idPlat} 
-                      className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                      className="bg-white rounded-2xl overflow-hidden border-2 border-black-deep/10 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group"
                       onClick={() => navigate(`/plat/${plat.idPlat}`)}
                     >
                       <div className="relative h-48 overflow-hidden bg-gray-100">
@@ -292,7 +325,7 @@ try {
                           <div className="flex items-center gap-0.5">
                             {renderStars(rating)}
                           </div>
-                          <span className="text-xs text-gray-600 ml-1">{rating > 0 ? rating : '0'}</span>
+                          <span className="text-xs text-gray-600 ml-1">{rating > 0 ? Number(rating).toFixed(2) : '0'}</span>
                         </div>
                         {!plat.disponibilite && (
                           <div className="absolute top-3 left-3 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
@@ -301,14 +334,14 @@ try {
                         )}
                       </div>
                       <div className="p-4">
-                          <h3 className="font-bold text-lg mb-1 line-clamp-1 group-hover:text-gold transition-colors">
+                          <h3 className="font-bold text-lg mb-1 line-clamp-1 group-hover:text-gray-900 transition-colors">
                           {plat.nomPlat}
                         </h3>
                         <p className="text-gray-500 text-sm mb-3 line-clamp-2">
                           {plat.description || t('menu.descriptionNA')}
                         </p>
                         <div className="flex items-center justify-between">
-                            <span className="text-gold font-bold text-xl">{plat.prix?.toFixed(2)} €</span>
+                            <span className="text-black-deep font-bold text-xl">{plat.prix?.toFixed(2)} €</span>
                           <button 
                             onClick={(e) => handleAddToCart(e, plat)}
                               className="bg-black-deep hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -331,7 +364,7 @@ try {
               return (
                 <div 
                   key={plat.idPlat} 
-                  className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                  className="bg-white rounded-2xl overflow-hidden border-2 border-black-deep/10 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer group"
                   onClick={() => navigate(`/plat/${plat.idPlat}`)}
                 >
                   <div className="relative h-48 overflow-hidden bg-gray-100">
@@ -351,7 +384,7 @@ try {
                       <div className="flex items-center gap-0.5">
                         {renderStars(rating)}
                       </div>
-                      <span className="text-xs text-gray-600 ml-1">{rating > 0 ? rating : '0'}</span>
+                      <span className="text-xs text-gray-600 ml-1">{rating > 0 ? Number(rating).toFixed(2) : '0'}</span>
                     </div>
                     {!plat.disponibilite && (
                       <div className="absolute top-3 left-3 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
@@ -360,14 +393,14 @@ try {
                     )}
                   </div>
                   <div className="p-4">
-                    <h3 className="font-bold text-lg mb-1 line-clamp-1 group-hover:text-gold transition-colors">
+                    <h3 className="font-bold text-lg mb-1 line-clamp-1 group-hover:text-gray-900 transition-colors">
                       {plat.nomPlat}
                     </h3>
                     <p className="text-gray-500 text-sm mb-3 line-clamp-2">
                       {plat.description || t('menu.descriptionNA')}
                     </p>
                     <div className="flex items-center justify-between">
-                          <span className="text-gold font-bold text-xl">{plat.prix?.toFixed(2)} €</span>
+                          <span className="text-black-deep font-bold text-xl">{plat.prix?.toFixed(2)} €</span>
                       <button 
                         onClick={(e) => handleAddToCart(e, plat)}
                             className="bg-black-deep hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -388,7 +421,7 @@ try {
           <section className="mt-16 pt-6 bg-gray-50 -mx-4 px-4 py-12 rounded-t-3xl">
             <div className="text-center mb-10">
               <div className="relative inline-block">
-                <div className="absolute inset-0 bg-gold/20 rounded-full blur-xl"></div>
+                <div className="absolute inset-0 bg-gold/30 rounded-full blur-xl"></div>
                 <div className="relative w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M6 14h12m-7-4V4m4 6V4M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -411,10 +444,10 @@ try {
                   const isPromo = menu.prixSpecial && menu.prixSpecial < (menu.prix || 0);
                   
                   return (
-                    <Link
+                    <div
                       key={menu.idMenu}
-                      to={`/menu?menu=${menu.idMenu}`}
-                      className="group bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                      onClick={() => setSelectedMenu(menu)}
+                      className="cursor-pointer group bg-white rounded-2xl overflow-hidden shadow-md border-2 border-black-deep/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                     >
                       <div className="relative h-44 overflow-hidden bg-gray-100">
                         {menu.photo ? (
@@ -446,18 +479,25 @@ try {
                       </div>
                       <div className="p-4">
                         <div className="flex justify-between items-start gap-2 mb-1">
-                          <h3 className="font-bold text-base line-clamp-1 group-hover:text-gold transition-colors">
+                          <h3 className="font-bold text-base line-clamp-1 group-hover:text-gray-900 transition-colors">
                             {menu.nomMenu}
                           </h3>
-                          <span className="text-gold font-bold text-base whitespace-nowrap">
+                          <span className="text-black-deep font-bold text-base whitespace-nowrap">
                             {Number(menu.prixSpecial || menu.prix || 0).toFixed(2)} €
                           </span>
                         </div>
                         <p className="text-gray-500 text-xs mb-2 line-clamp-2">
                           {menu.descriptionMenu || menu.description || t('menu.discover')}
                         </p>
+                        {menuRatings[menu.idMenu] > 0 && (
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="flex items-center gap-0.5">{renderStars(menuRatings[menu.idMenu])}</div>
+                            <span className="text-[10px] text-gray-400">({menuReviewsCount[menu.idMenu] || 0} avis)</span>
+                            <span className="text-[10px] text-gold font-semibold">{menuRatings[menu.idMenu]}</span>
+                          </div>
+                        )}
                         <div className="flex justify-end">
-                          <span className="text-gold text-xs font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                          <span className="text-gray-700 text-xs font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
                             {t('menu.discover')}
                             <svg className="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -465,11 +505,32 @@ try {
                           </span>
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   );
                 })}
             </div>
           </section>
+        )}
+
+        {/* Modal overlay pour le detail menu */}
+        {selectedMenu && (
+          <div
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 backdrop-blur-sm py-6"
+            onClick={() => setSelectedMenu(null)}
+          >
+            <div
+              className="relative w-full max-w-6xl mx-4 my-auto"
+              onClick={e => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setSelectedMenu(null)}
+                className="absolute -top-2 -right-2 z-10 bg-white rounded-full p-1.5 shadow-md hover:bg-gray-100 transition-colors"
+              >
+                <X size={20} />
+              </button>
+              <MenuDetail menu={selectedMenu} onBack={() => setSelectedMenu(null)} />
+            </div>
+          </div>
         )}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, ShoppingCart, User, LogOut, Globe } from 'lucide-react';
+import { Menu, X, ShoppingCart, ShoppingBag, User, LogOut, Globe } from 'lucide-react';
 import { useCart } from '../../hooks/useCart';
 import { useAuth } from '../../hooks/useAuth.jsx';
 import { useTranslation } from '../../i18n/I18nContext';
@@ -23,7 +23,7 @@ const NavigationBar = () => {
     { label: t('nav.home'), to: '/' },
     { label: t('nav.menu'), to: '/menu' },
     { label: t('nav.tables'), to: '/tables' },
-    { label: t('nav.orders'), to: '/commandes' },
+    { label: t('nav.orders'), to: '/mes-commandes' },
     { label: t('nav.invoices'), to: '/factures' },
     { label: t('nav.reviews'), to: '/avis' },
   ];
@@ -41,7 +41,7 @@ const NavigationBar = () => {
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo + Brand */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gold/10 border border-gold/30 shadow-md group-hover:scale-105 transition-transform duration-300">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-white/10 border border-white/20 shadow-md group-hover:scale-105 transition-transform duration-300">
               <img 
                 src={logoImage} 
                 alt="Logo" 
@@ -60,7 +60,7 @@ const NavigationBar = () => {
               <Link
                 key={link.to}
                 to={link.to}
-                className="px-3 py-2 rounded-lg text-sm lg:text-base hover:bg-gray-100 transition-all duration-300"
+                className="px-3 py-2 rounded-lg text-sm lg:text-base hover:bg-gold hover:text-black-deep transition-all duration-300"
               >
                 {link.label}
               </Link>
@@ -73,7 +73,7 @@ const NavigationBar = () => {
             <div className="relative">
               <button
                 onClick={() => setLangOpen(!langOpen)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-300 text-sm"
+                className="p-2 hover:bg-gold/10 rounded-lg transition-all duration-300 text-sm"
                 aria-label="Langue"
               >
                 <Globe size={18} className="sm:w-5 sm:h-5" />
@@ -90,7 +90,7 @@ const NavigationBar = () => {
                         key={lang.code}
                         onClick={() => { changeLanguage(lang.code); setLangOpen(false); }}
                         className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                          langue === lang.code ? 'bg-gold/10 text-gold font-semibold' : 'text-black-deep hover:bg-gray-light'
+                          langue === lang.code ? 'bg-gold/10 text-gold font-semibold' : 'text-black-deep hover:bg-gold/10'
                         }`}
                       >
                         {lang.label}
@@ -105,12 +105,12 @@ const NavigationBar = () => {
             {/* Cart Icon */}
             <Link
               to="/cart"
-              className="relative p-2 hover:bg-gray-100 rounded-lg transition-all duration-300"
+              className="relative p-2 hover:bg-gold/10 rounded-lg transition-all duration-300"
               aria-label="Panier"
             >
               <ShoppingCart size={20} className="sm:w-6 sm:h-6" />
               {getTotalItems() > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-gold text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                  <span className="absolute -top-1 -right-1 bg-gold text-black-deep text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
                   {getTotalItems()}
                 </span>
               )}
@@ -120,7 +120,7 @@ const NavigationBar = () => {
             {isLoggedIn ? (
               <Link
                 to="/profile"
-                className="hidden sm:flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition-all duration-300"
+                className="hidden sm:flex items-center gap-2 p-2 text-white-pure hover:bg-gold hover:text-black-deep rounded-lg transition-all duration-300"
                 aria-label="Profil"
               >
                 <User size={20} />
@@ -129,7 +129,7 @@ const NavigationBar = () => {
             ) : (
               <Link
                 to="/login"
-                className="hidden sm:block px-3 py-2 text-sm lg:text-base hover:bg-gray-100 rounded-lg transition-all duration-300"
+                className="hidden sm:block px-3 py-2 text-sm lg:text-base text-white-pure hover:bg-gold hover:text-black-deep rounded-lg transition-all duration-300"
               >
                 {t('nav.login')}
               </Link>
@@ -138,7 +138,7 @@ const NavigationBar = () => {
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-all duration-300"
+              className="md:hidden p-2 hover:bg-gold/10 rounded-lg transition-all duration-300"
               aria-label="Menu"
             >
               {menuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -164,7 +164,7 @@ const NavigationBar = () => {
                 <Link
                   to="/login"
                   onClick={() => setMenuOpen(false)}
-                    className="block px-4 py-2 text-sm hover:bg-gray-100 rounded transition-all duration-300"
+                  className="block px-4 py-2 text-sm text-blue-600 hover:text-blue-800 rounded transition-all duration-300"
                 >
                   <User size={18} className="inline mr-2" />
                   Connexion
@@ -175,14 +175,22 @@ const NavigationBar = () => {
                   <Link
                     to="/profile"
                     onClick={() => setMenuOpen(false)}
-                  className="block px-4 py-2 text-sm hover:bg-gray-100 rounded transition-all duration-300"
+                  className="block px-4 py-2 text-sm hover:bg-gold hover:text-black-deep rounded transition-all duration-300"
                   >
                     <User size={18} className="inline mr-2" />
                     Profil
                   </Link>
+                  <Link
+                    to="/mes-commandes"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-2 text-sm hover:bg-gold hover:text-black-deep rounded transition-all duration-300"
+                  >
+                    <ShoppingBag size={18} className="inline mr-2" />
+                    Mes commandes
+                  </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500 hover:text-white rounded transition-all duration-300"
+                    className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-50 hover:text-red-600 rounded transition-all duration-300"
                   >
                     <LogOut size={18} className="inline mr-2" />
                     {t('nav.logout')}

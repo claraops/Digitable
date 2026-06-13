@@ -15,9 +15,9 @@ import Cart from './pages/Cart';
 import OrderTracking from './pages/OrderTracking';
 import Profile from './pages/Profile';
 import Auth from './pages/Auth';
-import CommandesPage from './pages/CommandesPage';
 import FacturesPage from './pages/MyFactures';
 import AvisPage from './pages/AvisPage';
+import MesCommandes from './pages/MesCommandes';
 import TablesPage from './pages/Tables';
 import PlatDetail from './pages/PlatDetail';
 import KitchenDashboard from './pages/staff/KitchenDashboard';
@@ -31,16 +31,17 @@ import TablesAdmin from './pages/admin/TablesAdmin';
 import CommandesAdmin from './pages/admin/CommandesAdmin';
 import UtilisateursAdmin from './pages/admin/UtilisateursAdmin';
 import SettingsAdmin from './pages/admin/SettingsAdmin';
+import AdminAvisPage from './pages/admin/AvisPage';
 
 const CommanderPage = () => <div className="container mt-4"><h2>🍕 Passer une commande</h2><p>Page en construction...</p></div>;
 
 function App() {
   return (
-    <ErrorBoundary>
-      <I18nProvider>
+    <I18nProvider>
       <AuthProvider>
         <CartProvider>
           <Toaster position="top-right" />
+          <ErrorBoundary>
           <Router>
             <Routes>
               <Route element={<><NavigationBar /><Outlet /></>}>
@@ -48,19 +49,17 @@ function App() {
                 <Route path="/menu" element={<Menu />} />
                 <Route path="/tables" element={<TablesPage />} />
                 <Route path="/commander" element={<CommanderPage />} />
-                <Route path="/commandes" element={<CommandesPage />} />
                 <Route path="/factures" element={<FacturesPage />} />
                 <Route path="/avis" element={<AvisPage />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/tracking/:id" element={<OrderTracking />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/mes-commandes" element={<MesCommandes />} />
                 <Route path="/login" element={<Auth />} />
                 <Route path="/register" element={<Auth />} />
                 <Route path="/plat/:id" element={<PlatDetail />} />
                 <Route path="/staff/kitchen" element={<KitchenDashboard />} />
-
               </Route>
-
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="plats" element={<PlatsAdmin />} />
@@ -68,15 +67,15 @@ function App() {
                 <Route path="tables" element={<TablesAdmin />} />
                 <Route path="commandes" element={<CommandesAdmin />} />
                 <Route path="utilisateurs" element={<UtilisateursAdmin />} />
-                <Route path="avis" element={<AvisPage />} />
+                <Route path="avis" element={<AdminAvisPage />} />
                 <Route path="settings" element={<SettingsAdmin />} />
               </Route>
             </Routes>
           </Router>
+          </ErrorBoundary>
         </CartProvider>
       </AuthProvider>
-      </I18nProvider>
-    </ErrorBoundary>
+    </I18nProvider>
   );
 }
 

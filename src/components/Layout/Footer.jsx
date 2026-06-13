@@ -8,7 +8,7 @@ export default function Footer() {
   const links = [
     { label: 'Accueil', path: '/' },
     { label: 'Menu', path: '/menu' },
-    { label: 'Commandes', path: '/commandes' },
+    { label: 'Commandes', path: '/mes-commandes' },
   ];
 
   const contact = [

@@ -7,6 +7,7 @@ import {
   Settings, LogOut, X
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import logoImage from '../../assets/logo.webp';
 
 const adminNavItems = [
   { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -26,9 +27,7 @@ export default function AdminLayout() {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Vérification du rôle ADMIN
     const checkAdmin = () => {
-      // Récupérer directement depuis localStorage
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
         try {
@@ -36,20 +35,16 @@ export default function AdminLayout() {
           const role = userData.role || userData.authorities?.[0];
           const hasAdminRole = role === 'ADMIN' || role === 'ROLE_ADMIN';
           
-          console.log('Vérification admin:', { role, hasAdminRole, userData });
-          
           if (!hasAdminRole) {
-            toast.error('Accès non autorisé. Veuillez vous connecter en tant qu\'administrateur.');
+            toast.error('Accès non autorisé.');
             navigate('/');
           } else {
             setIsAdmin(true);
           }
         } catch (e) {
-          console.error('Erreur parsing user:', e);
           navigate('/');
         }
       } else {
-        console.log('Aucun utilisateur dans localStorage');
         toast.error('Veuillez vous connecter');
         navigate('/login');
       }
@@ -60,11 +55,10 @@ export default function AdminLayout() {
     }
   }, [loading, navigate]);
 
-  // Afficher un loader pendant la vérification
   if (loading || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-gray-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -76,61 +70,59 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-gray-light">
+    <div className="min-h-screen w-full overflow-x-hidden bg-gray-100">
       <div className="md:flex">
         {/* Mobile Header */}
-        <div className="md:hidden bg-white-pure border-b border-gray-light p-3 sm:p-4 flex items-center justify-between sticky top-0 z-30">
-          <div>
-            <p className="text-xs uppercase tracking-wider text-gray-dark mb-0.5">Admin</p>
-            <h2 className="text-lg sm:text-xl font-semibold">Menu Admin</h2>
+        <div className="md:hidden bg-white border-b border-gray-200 p-3 sm:p-4 flex items-center justify-between sticky top-0 z-30">
+          <div className="flex items-center gap-2">
+            <img src={logoImage} alt="Logo" className="w-8 h-8 rounded-full object-cover" />
+            <span className="font-bold">Menu<span className="text-gold/80">Admin</span></span>
           </div>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="rounded-lg bg-gray-light p-2 text-black-deep hover:bg-gold transition-colors"
+            className="rounded-lg bg-gray-100 p-2 text-black hover:bg-gold/20 transition-colors"
             aria-label="Menu"
           >
             {mobileOpen ? <X size={20} /> : <MenuIcon size={20} />}
           </button>
         </div>
 
-        {/* Sidebar - fixed */}
-        <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-black-deep text-white-pure transform transition-transform duration-300 md:translate-x-0 ${
+        {/* Sidebar */}
+        <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-black-deep text-white transform transition-transform duration-300 md:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         } shadow-lg`}>
-          <div className="p-4 sm:p-6 border-b border-white/10">
-            <h1 className="text-xl sm:text-2xl font-bold">
-              Menu<span className="text-gold/80">Admin</span>
-            </h1>
-            <p className="text-gray-light text-xs sm:text-sm mt-2">Gestion complète</p>
+          <div className="p-6 border-b border-white/10 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-white/10 border border-white/20 flex-shrink-0">
+              <img src={logoImage} alt="Logo" className="w-full h-full object-cover" />
+            </div>
+            <span className="text-xl font-bold">Menu<span className="text-gold/80">Admin</span></span>
           </div>
 
-          <nav className="mt-4 sm:mt-6 overflow-y-auto max-h-[calc(100vh-120px)]">
+          <nav className="mt-4">
             {adminNavItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
+                end={item.path === '/admin'}
                 onClick={closeMobile}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 sm:px-6 py-3 transition-colors text-sm sm:text-base ${
+                  `flex items-center gap-3 px-6 py-3 transition-colors text-sm ${
                     isActive 
-                      ? 'bg-gold/20 text-gold font-semibold border-r-2 border-gold' 
-                      : 'hover:bg-gray-dark hover:bg-opacity-20'
+                      ? 'bg-gray-800 text-white font-semibold border-r-2 border-gold' 
+                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
                   }`
                 }
               >
-                <item.icon size={20} />
+                <item.icon size={18} />
                 <span>{item.label}</span>
               </NavLink>
             ))}
             
             <button
-              onClick={() => {
-                handleLogout();
-                closeMobile();
-              }}
-              className="w-full flex items-center gap-3 px-4 sm:px-6 py-3 mt-4 text-red-400 hover:bg-gray-dark hover:bg-opacity-20 transition-colors text-sm sm:text-base"
+              onClick={() => { handleLogout(); closeMobile(); }}
+              className="w-full flex items-center gap-3 px-6 py-3 mt-4 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors text-sm"
             >
-              <LogOut size={20} />
+              <LogOut size={18} />
               <span>Déconnexion</span>
             </button>
           </nav>
@@ -138,27 +130,35 @@ export default function AdminLayout() {
 
         {/* Mobile Overlay */}
         {mobileOpen && (
-          <div className="fixed inset-0 z-30 bg-black-deep/40 md:hidden" onClick={closeMobile} />
+          <div className="fixed inset-0 z-30 bg-black/40 md:hidden" onClick={closeMobile} />
         )}
 
         {/* Main Content */}
         <main className="flex-1 w-full min-w-0 md:ml-64">
-          <div className="p-3 sm:p-4 md:p-8">
-            <div className="mb-6 sm:mb-8 bg-white-pure border border-gray-light rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm">
-              <div className="mb-4">
-                <p className="text-xs uppercase tracking-wider text-gray-dark mb-1 sm:mb-2">Admin</p>
-                <h1 className="text-2xl sm:text-3xl font-bold">Dashboard & Gestion</h1>
+          {/* Top navbar */}
+          <div className="bg-white border-b border-gray-200">
+            <div className="px-6 py-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wider">Administration</p>
+                <h1 className="text-lg font-semibold text-gray-900 mt-0.5">Bienvenue, {user?.prenom || user?.nom || 'Admin'}</h1>
               </div>
-              <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-gray-dark text-xs sm:text-sm">
-                  Gérez les plats, menus, tables et commandes depuis un seul endroit.
-                </p>
-                <span className="inline-flex items-center gap-2 rounded-full bg-gray-light px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-black-deep font-medium whitespace-nowrap">
-                  {user?.prenom || user?.nom || 'Admin'}
-                </span>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-gold/10 flex items-center justify-center text-gold font-bold text-sm">
+                  {user?.prenom?.[0] || user?.nom?.[0] || 'A'}
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900">{user?.prenom || 'Admin'} {user?.nom || ''}</p>
+                  <p className="text-xs text-gray-400">Connecte</p>
+                </div>
               </div>
             </div>
-            <Outlet />
+          </div>
+
+          {/* Page content */}
+          <div className="p-6">
+            <div className="bg-white rounded-2xl shadow-sm border-2 border-black-deep/15 p-6">
+              <Outlet />
+            </div>
           </div>
         </main>
       </div>

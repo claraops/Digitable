@@ -116,19 +116,11 @@ export default function UtilisateursAdmin() {
 
   return (
     <div>
-      <div className="bg-gray-light rounded-3xl p-6 mb-8 shadow-sm border border-gray-light">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-gray-dark mb-2 flex items-center gap-2">
-              👥 Gérer les utilisateurs
-            </p>
-            <h1 className="text-3xl font-bold">Gestion des Utilisateurs</h1>
-            <p className="text-gray-dark mt-2">Consultez, modifiez et supprimez les comptes utilisateurs.</p>
-          </div>
-          <button onClick={() => openModal()} className="btn-primary flex items-center gap-2 self-start md:self-auto">
-            <Plus size={20} /> Ajouter un utilisateur
-          </button>
-        </div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-center md:text-left">Gestion des Utilisateurs</h1>
+        <button onClick={() => openModal()} className="btn-primary flex items-center gap-2 mt-3 md:mt-0">
+          <Plus size={20} /> Ajouter un utilisateur
+        </button>
       </div>
 
       <div className="relative max-w-md mb-6">
@@ -152,13 +144,13 @@ export default function UtilisateursAdmin() {
           <table className="w-full">
             <thead className="bg-gray-light">
               <tr>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">ID</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Nom</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Email</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Téléphone</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Rôle</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Langue</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Actions</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">ID</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Nom</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Email</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Téléphone</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Rôle</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Langue</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -178,7 +170,7 @@ export default function UtilisateursAdmin() {
                   <td className="px-3 py-3 text-sm">{user.langue}</td>
                   <td className="px-3 py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => openModal(user)} className="text-blue-500 hover:text-blue-700 transition-colors">
+                      <button onClick={() => openModal(user)} className="text-blue-600 hover:text-blue-800 transition-colors">
                         <Edit2 size={18} />
                       </button>
                       <button onClick={() => handleDelete(user.idUser)} className="text-red-500 hover:text-red-700 transition-colors">
@@ -222,10 +214,10 @@ export default function UtilisateursAdmin() {
                 <span>{user.telephone || '—'} · {user.langue}</span>
               </div>
               <div className="flex justify-end gap-2 pt-2 border-t border-gray-light">
-                <button onClick={() => openModal(user)} className="text-blue-500 text-sm hover:underline flex items-center gap-1">
+                <button onClick={() => openModal(user)} className="text-blue-600 text-sm hover:underline hover:text-blue-800 flex items-center gap-1">
                   <Edit2 size={14} /> Modifier
                 </button>
-                <button onClick={() => handleDelete(user.idUser)} className="text-red-500 text-sm hover:underline flex items-center gap-1">
+                <button onClick={() => handleDelete(user.idUser)} className="text-red-500 text-sm hover:underline hover:text-red-700 flex items-center gap-1">
                   <Trash2 size={14} /> Supprimer
                 </button>
               </div>

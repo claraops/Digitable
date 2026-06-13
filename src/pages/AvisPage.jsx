@@ -185,7 +185,7 @@ export default function AvisPage() {
                         <p className="text-sm text-gray-dark">
                           {new Date(cmd.dateCommande).toLocaleDateString('fr-FR')}
                         </p>
-                        <p className="text-gold font-semibold mt-1">{cmd.montantTotal?.toFixed(2)} €</p>
+                        <p className="text-black-deep font-semibold mt-1">{cmd.montantTotal?.toFixed(2)} €</p>
                       </div>
                       <button
                         onClick={() => setSelectedCommande(cmd)}

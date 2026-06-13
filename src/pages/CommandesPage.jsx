@@ -117,7 +117,7 @@ const fetchCommandes = async () => {
       'EN_PREPARATION': { label: t('orders.status.EN_PREPARATION'), color: 'bg-blue-500' },
       'PRETE': { label: t('orders.status.PRETE'), color: 'bg-green-500' },
       'SERVIE': { label: t('orders.status.SERVIE'), color: 'bg-gray-400' },
-      'PAYEE': { label: t('orders.status.PAYEE'), color: 'bg-gold' },
+      'PAYEE': { label: t('orders.status.PAYEE'), color: 'bg-green-600' },
       'ANNULEE': { label: t('orders.status.ANNULEE'), color: 'bg-red-500' }
     };
     const c = config[statut] || { label: statut, color: 'bg-gray-500' };
@@ -231,11 +231,11 @@ const fetchCommandes = async () => {
                       <p className="text-gray-500 text-sm">{t('orders.table')} {cmd.numeroTable}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-gold">{cmd.montantTotal?.toFixed(2)} €</p>
+                      <p className="text-2xl font-bold text-black-deep">{cmd.montantTotal?.toFixed(2)} €</p>
                       {canLeaveAvis && (
                         <button
                           onClick={() => handleOpenAvisModal(cmd)}
-                          className="mt-2 text-sm bg-gold/10 text-gold px-3 py-1 rounded-full flex items-center gap-1 hover:bg-gold/20 transition"
+                          className="mt-2 text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full flex items-center gap-1 hover:bg-gray-200 transition"
                         >
                           <MessageSquare size={14} /> {t('orders.giveReview')}
                         </button>
@@ -260,7 +260,7 @@ const fetchCommandes = async () => {
                     <div className="mb-4 pt-2">
                       <div className="relative">
                         <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200">
-                          <div className="h-full bg-gold transition-all" style={{ width: `${(currentStepIndex / (statusSteps.length - 1)) * 100}%` }} />
+                          <div className="h-full bg-gray-800 transition-all" style={{ width: `${(currentStepIndex / (statusSteps.length - 1)) * 100}%` }} />
                         </div>
                         <div className="relative flex justify-between">
                           {statusSteps.map((step, idx) => {
@@ -268,10 +268,10 @@ const fetchCommandes = async () => {
                             const Icon = step.icon;
                             return (
                               <div key={step.id} className="text-center">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto ${isCompleted ? 'bg-gold text-white' : 'bg-gray-200 text-gray-500'}`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto ${isCompleted ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-500'}`}>
                                   <Icon size={14} />
                                 </div>
-                                <p className={`text-xs mt-1 ${isCompleted ? 'text-gold font-medium' : 'text-gray-400'}`}>{step.label}</p>
+                                <p className={`text-xs mt-1 ${isCompleted ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>{step.label}</p>
                               </div>
                             );
                           })}
@@ -293,8 +293,8 @@ const fetchCommandes = async () => {
                     </div>
                   </div>
                   
-                  <button onClick={() => setSelectedCommande(cmd)} className="mt-3 text-gold text-sm hover:underline">
-                    {t('orders.viewDetails')} →
+                  <button onClick={() => setSelectedCommande(cmd)} className="mt-3 text-gray-700 text-sm hover:underline">
+                    {t('orders.viewDetails')} {'>'}
                   </button>
                 </div>
               );
@@ -323,7 +323,7 @@ const fetchCommandes = async () => {
                   {selectedCommande.platsCommandes?.map((plat, idx) => (
                     <div key={idx} className="flex justify-between border-b pb-2">
                       <span>{plat.platNom} x{plat.quantite}</span>
-                      <span className="text-gold">{(plat.prixUnitaire * plat.quantite).toFixed(2)} €</span>
+                      <span className="text-black-deep">{(plat.prixUnitaire * plat.quantite).toFixed(2)} €</span>
                     </div>
                   ))}
                 </div>
@@ -331,7 +331,7 @@ const fetchCommandes = async () => {
               <div className="pt-3 border-t">
                 <div className="flex justify-between font-bold text-lg">
                   <span>{t('common.total')}</span>
-                  <span className="text-gold">{selectedCommande.montantTotal?.toFixed(2)} €</span>
+                  <span className="text-black-deep">{selectedCommande.montantTotal?.toFixed(2)} €</span>
                 </div>
               </div>
             </div>
@@ -345,8 +345,8 @@ const fetchCommandes = async () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <div className="text-center mb-4">
-              <div className="w-14 h-14 bg-gold/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                <MessageSquare className="w-7 h-7 text-gold" />
+              <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <MessageSquare className="w-7 h-7 text-gray-600" />
               </div>
               <h2 className="text-xl font-bold">{t('orders.giveReview')}</h2>
               <p className="text-gray-500 text-sm">{t('orders.orderNumber')} #{selectedCommande.idCommande}</p>

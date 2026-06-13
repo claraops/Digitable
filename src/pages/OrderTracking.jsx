@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle, Clock, CookingPot, Truck, PackageCheck, MapPin } from 'lucide-react';
+import { CheckCircle, Clock, CookingPot, Utensils, PackageCheck, MapPin } from 'lucide-react';
 import { commandeService } from '../services/commandeService';
 import { useTranslation } from '../i18n/I18nContext';
 import Loader from '../components/Common/Loader';
@@ -9,8 +9,8 @@ import toast from 'react-hot-toast';
 const stepIds = [
   { id: 'EN_ATTENTE', icon: Clock, color: 'bg-gray-light' },
   { id: 'EN_PREPARATION', icon: CookingPot, color: 'bg-blue-500' },
-  { id: 'PRETE', icon: PackageCheck, color: 'bg-gold' },
-  { id: 'SERVIE', icon: Truck, color: 'bg-green-500' },
+  { id: 'PRETE', icon: PackageCheck, color: 'bg-green-500' },
+  { id: 'SERVIE', icon: Utensils, color: 'bg-green-500' },
 ];
 
 export default function OrderTracking() {
@@ -60,11 +60,9 @@ export default function OrderTracking() {
         <div className="bg-white-pure rounded-xl p-6 mb-8 text-center">
           <h1 className="text-2xl font-bold mb-2">{t('orders.tracking.title')}</h1>
           <p className="text-gray-dark">{t('orders.orderNumber')} #{commande.idCommande}</p>
-          <div className="mt-4 p-3 bg-gray-light rounded-lg">
-            <div className="flex items-center justify-center gap-2">
-              <MapPin size={18} className="text-gold" />
-              <span className="text-sm">{t('orders.table')} {commande.numeroTable}</span>
-            </div>
+          <div className="mt-4 inline-flex items-center gap-2 bg-gold/10 border border-gold/20 rounded-full px-4 py-2">
+            <MapPin size={16} className="text-gold" />
+            <span className="text-sm font-medium text-black-deep">{t('orders.table')} {commande.numeroTable}</span>
           </div>
         </div>
 
@@ -97,7 +95,7 @@ export default function OrderTracking() {
                       {step.label}
                     </p>
                     {isCompleted && index === getCurrentStepIndex() && (
-                      <p className="text-xs text-gold mt-1">En cours</p>
+                      <p className="text-xs text-gold mt-1 font-semibold">En cours</p>
                     )}
                   </div>
                 );
@@ -117,7 +115,7 @@ export default function OrderTracking() {
                   <span className="font-medium">{plat.platNom}</span>
                   <span className="text-gray-dark text-sm ml-2">x{plat.quantite}</span>
                 </div>
-                <span className="text-gold font-semibold">
+                <span className="text-black-deep font-semibold">
                   {(plat.prixUnitaire * plat.quantite).toFixed(2)} €
                 </span>
               </div>
@@ -125,7 +123,7 @@ export default function OrderTracking() {
             
             <div className="flex justify-between pt-3 mt-2">
               <span className="font-bold">{t('common.total')}</span>
-              <span className="text-xl font-bold text-gold">{commande.montantTotal} €</span>
+              <span className="text-xl font-bold text-black-deep">{commande.montantTotal} €</span>
             </div>
           </div>
 

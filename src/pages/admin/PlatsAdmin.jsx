@@ -228,19 +228,11 @@ const uploadImage = async (file) => {
 
   return (
     <div>
-      <div className="bg-gray-light rounded-3xl p-6 mb-8 shadow-sm border border-gray-light">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-gray-dark mb-2 flex items-center gap-2">
-              <Utensils size={18} /> Gérer le plat
-            </p>
-            <h1 className="text-3xl font-bold">Gestion des Plats</h1>
-            <p className="text-gray-dark mt-2">Ajoutez, modifiez et supprimez les plats avec image et disponibilité.</p>
-          </div>
-          <button onClick={() => openModal()} className="btn-primary flex items-center gap-2 self-start md:self-auto">
-            <Plus size={20} /> Ajouter un plat
-          </button>
-        </div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-center md:text-left">Gestion des Plats</h1>
+        <button onClick={() => openModal()} className="btn-primary flex items-center gap-2 mt-3 md:mt-0">
+          <Plus size={20} /> Ajouter un plat
+        </button>
       </div>
 
       {/* Search */}
@@ -270,13 +262,13 @@ const uploadImage = async (file) => {
           <table className="w-full">
             <thead className="bg-gray-light">
               <tr>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">ID</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Image</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Nom</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Catégorie</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Prix</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Disponible</th>
-                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark uppercase tracking-wider">Actions</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">ID</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Image</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Nom</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Catégorie</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Prix</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Disponible</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-gray-dark  ">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -297,17 +289,17 @@ const uploadImage = async (file) => {
                   </td>
                   <td className="px-3 py-3 font-medium text-black-deep text-sm">{plat.nomPlat}</td>
                   <td className="px-3 py-3 text-sm text-gray-dark whitespace-nowrap">{getCategoryLabel(plat.categorie)}</td>
-                  <td className="px-3 py-3 font-semibold text-gold text-sm whitespace-nowrap">{Number(plat.prix ?? 0).toFixed(2)} €</td>
+                  <td className="px-3 py-3 font-semibold text-black-deep text-sm whitespace-nowrap">{Number(plat.prix ?? 0).toFixed(2)} €</td>
                   <td className="px-3 py-3">
                     <span className={`px-2 py-1 rounded-full text-xs ${
-                      plat.disponibilite ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      plat.disponibilite ? 'bg-gold/10 text-black-deep' : 'bg-gray-100 text-gray-400'
                     }`}>
                       {plat.disponibilite ? 'Disponible' : 'Indisponible'}
                     </span>
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => openModal(plat)} className="text-blue-500 hover:text-blue-700 transition-colors">
+                      <button onClick={() => openModal(plat)} className="text-blue-600 hover:text-blue-800 transition-colors">
                         <Edit2 size={18} />
                       </button>
                       <button onClick={() => handleDelete(plat.idPlat)} className="text-red-500 hover:text-red-700 transition-colors">
@@ -350,17 +342,17 @@ const uploadImage = async (file) => {
                       <p className="font-semibold truncate">{plat.nomPlat}</p>
                       <p className="text-xs text-gray-dark">{getCategoryLabel(plat.categorie)}</p>
                     </div>
-                    <span className="text-gold font-bold">{Number(plat.prix ?? 0).toFixed(2)} €</span>
+                    <span className="text-black-deep font-bold">{Number(plat.prix ?? 0).toFixed(2)} €</span>
                   </div>
                   <div className="flex items-center justify-between mt-2">
                     <span className={`px-2 py-0.5 rounded-full text-xs ${
-                      plat.disponibilite ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      plat.disponibilite ? 'bg-gold/10 text-black-deep' : 'bg-gray-100 text-gray-400'
                     }`}>
                       {plat.disponibilite ? 'Disponible' : 'Indisponible'}
                     </span>
                     <div className="flex gap-2">
-                      <button onClick={() => openModal(plat)} className="text-blue-500 text-xs hover:underline">Modifier</button>
-                      <button onClick={() => handleDelete(plat.idPlat)} className="text-red-500 text-xs hover:underline">Supprimer</button>
+                      <button onClick={() => openModal(plat)} className="text-blue-600 text-xs hover:underline hover:text-blue-800">Modifier</button>
+                      <button onClick={() => handleDelete(plat.idPlat)} className="text-red-500 text-xs hover:underline hover:text-red-700">Supprimer</button>
                     </div>
                   </div>
                 </div>
@@ -478,7 +470,7 @@ const uploadImage = async (file) => {
                           setImageFile(null);
                           setFormData({...formData, imagePlat: ''});
                         }}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        className="absolute -top-2 -right-2 text-white rounded-full p-1 bg-red-500 hover:bg-red-600"
                       >
                         <X size={14} />
                       </button>

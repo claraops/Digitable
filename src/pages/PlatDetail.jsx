@@ -112,7 +112,7 @@ export default function PlatDetail() {
   const getRatingAverage = () => {
     if (avisPlat.length === 0) return 0;
     const sum = avisPlat.reduce((acc, a) => acc + parseInt(a.note || 0), 0);
-    return (sum / avisPlat.length).toFixed(1);
+    return (sum / avisPlat.length).toFixed(2);
   };
 
   /*useEffect(() => {
@@ -187,19 +187,40 @@ useEffect(() => {
     navigate('/cart');
   };
 
-  const renderStars = (rating) => {
+  const renderStars = (rating, size = 14) => {
     const stars = [];
     const numStars = Math.round(parseFloat(rating) || 0);
     for (let i = 1; i <= 5; i++) {
       stars.push(
         <Star 
           key={i} 
-          size={14} 
+          size={size} 
           className={i <= numStars ? 'fill-gold text-gold' : 'text-gray-300 fill-gray-300'}
         />
       );
     }
     return stars;
+  };
+
+  const formatRelativeDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
+    const diffMonth = Math.floor(diffDay / 30);
+    const diffYear = Math.floor(diffDay / 365);
+
+    if (diffSec < 60) return "à l'instant";
+    if (diffMin < 60) return `il y a ${diffMin} min`;
+    if (diffHour < 24) return `il y a ${diffHour} h`;
+    if (diffDay === 1) return 'hier';
+    if (diffDay < 30) return `il y a ${diffDay} jours`;
+    if (diffMonth < 12) return `il y a ${diffMonth} mois`;
+    return `il y a ${diffYear} ans`;
   };
 
   if (loading) {
@@ -245,7 +266,7 @@ useEffect(() => {
         </Link>
 
         {/* Carte principale du plat - 2 colonnes */}
-        <div className="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100">
+        <div className="bg-white rounded-2xl overflow-hidden shadow-md border-2 border-black-deep/15">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
             
             {/* COLONNE GAUCHE : Image + Avis */}
@@ -264,36 +285,70 @@ useEffect(() => {
                 </div>
               </div>
               
-              {/* Avis Section */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex items-center gap-0.5">
-                    {renderStars(getRatingAverage())}
+              {/* Avis Section - Professional Redesign */}
+              <div className="bg-white rounded-xl p-5 border-2 border-black-deep/10 shadow-sm">
+                {/* Overall Rating Header */}
+                {avisPlat.length > 0 && (
+                  <div className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-100">
+                    <div className="text-center">
+                      <span className="text-4xl font-bold text-black-deep">{getRatingAverage()}</span>
+                      <div className="flex items-center gap-0.5 mt-1">
+                        {renderStars(getRatingAverage(), 16)}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">{avisPlat.length} avis clients</p>
+                    </div>
                   </div>
-                  <span className="text-gray-500 text-sm">({avisPlat.length} avis)</span>
-                </div>
+                )}
                 
+                {/* Rating Breakdown */}
+                {avisPlat.length > 0 && (
+                  <div className="mb-4 pb-4 border-b border-gray-100 space-y-1.5">
+                    {[5, 4, 3, 2, 1].map(star => {
+                      const count = avisPlat.filter(a => parseInt(a.note) === star).length;
+                      const pct = avisPlat.length > 0 ? (count / avisPlat.length) * 100 : 0;
+                      return (
+                        <div key={star} className="flex items-center gap-2 text-sm">
+                          <span className="text-gray-500 w-2 text-right">{star}</span>
+                          <Star size={12} className="text-gold fill-gold" />
+                          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-gold rounded-full transition-all" style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="text-gray-400 text-xs w-8 text-right">{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                
+                {/* Individual Review Cards */}
                 {avisPlat.length === 0 ? (
-                  <div className="text-center py-2">
-                    <MessageSquare className="w-8 h-8 text-gray-300 mx-auto mb-1" />
-                    <p className="text-gray-400 text-xs">Aucun avis pour ce plat pour le moment.</p>
+                  <div className="text-center py-6">
+                    <MessageSquare className="w-10 h-10 text-gray-200 mx-auto mb-2" />
+                    <p className="text-gray-400 text-sm">Aucun avis pour ce plat pour le moment.</p>
+                    <p className="text-gray-300 text-xs mt-1">Soyez le premier à donner votre avis !</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+                  <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
                     {avisPlat.map((a, idx) => (
-                      <div key={idx} className="border-b border-gray-200 pb-2 last:border-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-1">
-                            {renderStars(parseInt(a.note) || 0)}
+                      <div key={idx} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-black-deep">
+                              {a.utilisateurPrenom || a.utilisateurNom ? `${a.utilisateurPrenom || ''} ${a.utilisateurNom || ''}`.trim() : 'Anonyme'}
+                            </span>
+                            <div className="flex items-center gap-0.5">
+                              {renderStars(parseInt(a.note) || 0, 12)}
+                            </div>
                           </div>
                           <span className="text-xs text-gray-400">
-                            {a.dateAvis ? new Date(a.dateAvis).toLocaleDateString('fr-FR') : ''}
+                            {formatRelativeDate(a.dateAvis)}
                           </span>
                         </div>
-                        <p className="text-gray-700 text-xs font-medium mb-0.5">
-                          {a.utilisateurPrenom || a.utilisateurNom ? `${a.utilisateurPrenom || ''} ${a.utilisateurNom || ''}`.trim() : 'Anonyme'}
-                        </p>
-                        <p className="text-gray-600 text-xs">{a.commentaire || 'Aucun commentaire'}</p>
+                        {a.commentaire && (
+                          <p className="text-gray-600 text-xs leading-relaxed">{a.commentaire}</p>
+                        )}
                       </div>
                     ))}
                   </div>
