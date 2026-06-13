@@ -45,8 +45,17 @@ export default function Auth() {
         toast.error('Le nom est obligatoire');
         return false;
       }
+      const nomRegex = /^[a-zA-ZÀ-ÿ\s'-]{2,50}$/;
+      if (!nomRegex.test(formData.nom.trim())) {
+        toast.error('Le nom ne doit contenir que des lettres, espaces, apostrophes ou tirets (2-50 car.)');
+        return false;
+      }
       if (!formData.prenom.trim()) {
         toast.error('Le prénom est obligatoire');
+        return false;
+      }
+      if (!nomRegex.test(formData.prenom.trim())) {
+        toast.error('Le prénom ne doit contenir que des lettres, espaces, apostrophes ou tirets (2-50 car.)');
         return false;
       }
       if (!formData.telephone.trim()) {
@@ -55,7 +64,7 @@ export default function Auth() {
       }
       const phoneRegex = /^(0[1-9](\d{2}){4}|\+33[1-9](\d{2}){4})$/;
       if (!phoneRegex.test(formData.telephone.replace(/\s/g, ''))) {
-        toast.error('Numéro de téléphone invalide (ex: 0612345678)');
+        toast.error('Numéro de téléphone invalide (ex: 0612345678 ou +33612345678)');
         return false;
       }
     }
@@ -64,14 +73,25 @@ export default function Auth() {
       toast.error('L\'email est obligatoire');
       return false;
     }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      toast.error('Format d\'email invalide');
+      return false;
+    }
     
     if (!formData.password.trim()) {
       toast.error('Le mot de passe est obligatoire');
       return false;
     }
     
-    if (formData.password.length < 6) {
-      toast.error('Le mot de passe doit contenir au moins 6 caractères');
+    if (formData.password.length < 8) {
+      toast.error('Le mot de passe doit contenir au moins 8 caractères');
+      return false;
+    }
+    
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      toast.error('Le mot de passe doit contenir au moins une lettre et un chiffre');
       return false;
     }
     
@@ -291,7 +311,7 @@ export default function Auth() {
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              <p className="text-xs text-gray-dark mt-1">Au moins 6 caractères</p>
+              <p className="text-xs text-gray-dark mt-1">Au moins 8 caractères, une lettre et un chiffre</p>
             </div>
 
             {/* Language Selection */}
