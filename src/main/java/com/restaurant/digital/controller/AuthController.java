@@ -1,9 +1,13 @@
 package com.restaurant.digital.controller;
 
+import com.restaurant.digital.dto.request.LoginRequest;
 import com.restaurant.digital.dto.request.UtilisateurRequest;
 import com.restaurant.digital.model.entity.Utilisateur;
 import com.restaurant.digital.service.impl.UtilisateurServiceImpl;
 import com.restaurant.digital.repository.UtilisateurRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,26 +26,28 @@ public class AuthController {
     private final UtilisateurRepository utilisateurRepository;
 
     @PostMapping("/register")
+    @Operation(summary = "Inscrire un utilisateur", description = "Crée un nouveau compte utilisateur")
+    @ApiResponse(responseCode = "201", description = "Utilisateur inscrit avec succès")
     public ResponseEntity<Utilisateur> register(@Valid @RequestBody UtilisateurRequest request) {
         return new ResponseEntity<>(utilisateurService.inscrire(request), HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
-        String email = credentials.get("email");
-        String password = credentials.get("password");
-        
-        boolean ok = utilisateurService.verifierMotDePasse(email, password);
+    @Operation(summary = "Connecter un utilisateur", description = "Authentifie un utilisateur et retourne ses informations")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Connexion réussie"),
+        @ApiResponse(responseCode = "401", description = "Identifiants incorrects")
+    })
+    public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginRequest request) {
+        boolean ok = utilisateurService.verifierMotDePasse(request.getEmail(), request.getPassword());
         if (!ok) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Identifiants incorrects"));
         }
         
-        // ✅ Récupérer l'utilisateur complet
-        Utilisateur user = utilisateurRepository.findByEmail(email)
+        Utilisateur user = utilisateurRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
         
-        // ✅ Retourner toutes les informations nécessaires de l'users
         Map<String, Object> response = new HashMap<>();
         response.put("idUser", user.getIdUser());
         response.put("nom", user.getNom());
