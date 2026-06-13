@@ -41,7 +41,7 @@ public class AuthController {
         Utilisateur user = utilisateurRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
         
-        // ✅ Retourner toutes les informations nécessaires
+        // ✅ Retourner toutes les informations nécessaires de l'users
         Map<String, Object> response = new HashMap<>();
         response.put("idUser", user.getIdUser());
         response.put("nom", user.getNom());
