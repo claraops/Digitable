@@ -16,6 +16,11 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 @RestController
 // ✅ CHANGEMENT IMPORTANT : Ajouter /api/v1
 @RequestMapping("/images")
@@ -33,8 +38,10 @@ public class ImageController {
         }
     }
 
+    @Operation(summary = "Uploader une image", description = "Télécharge une image et retourne son nom et son URL")
+    @ApiResponse(responseCode = "200", description = "Image téléchargée avec succès")
     @PostMapping("/upload")
-    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") @Parameter(description = "Fichier image à télécharger") MultipartFile file) {
         try {
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest().build();
@@ -62,8 +69,13 @@ public class ImageController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    @Operation(summary = "Récupérer une image", description = "Retourne une image par son nom de fichier")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Image trouvée"),
+        @ApiResponse(responseCode = "404", description = "Image non trouvée")
+    })
     @GetMapping("/{filename:.+}")
-    public ResponseEntity<Resource> getImage(@PathVariable String filename) {
+    public ResponseEntity<Resource> getImage(@PathVariable @Parameter(description = "Nom du fichier image") String filename) {
         try {
             Path filePath = uploadDir.resolve(filename);
             System.out.println("🔍 Recherche: " + filePath.toAbsolutePath());
@@ -93,6 +105,7 @@ public class ImageController {
         }
     }
 
+    @Operation(summary = "Lister les images", description = "Retourne la liste des images téléchargées")
     @GetMapping
     public ResponseEntity<Map<String, Object>> listImages() {
         Map<String, Object> response = new HashMap<>();
