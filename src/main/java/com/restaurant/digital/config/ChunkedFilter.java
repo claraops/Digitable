@@ -21,7 +21,6 @@ public class ChunkedFilter implements Filter {
             return;
         }
 
-        httpResponse.setHeader("Transfer-Encoding", "identity");
         httpResponse.setHeader("Content-Type", "application/json;charset=UTF-8");
         chain.doFilter(request, response);
     }
